@@ -38,6 +38,8 @@
     <string name="rest_minutes">%1$s min rest</string>
     <string name="swap">No machine? %1$s</string>
 
+    <string name="message_save_failed">Saving failed. Try again.</string>
+
     <string name="body_placeholder">Weight, waist and progress photos arrive in phase 4.</string>
     <string name="progress_placeholder">Bodyweight and lift charts arrive in phase 5.</string>
 </resources>

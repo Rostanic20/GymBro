@@ -14,7 +14,6 @@ import hr.rostanic20.gymbro.data.repository.ProgramRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
-import hr.rostanic20.gymbro.navigation.AppNavController
 import hr.rostanic20.gymbro.ui.today.TodayViewModel
 import hr.rostanic20.gymbro.ui.train.TrainViewModel
 import org.koin.android.ext.koin.androidApplication
@@ -26,7 +25,6 @@ import org.koin.dsl.module
 val appModule = module {
     single<DispatcherProvider> { DefaultDispatcherProvider() }
     single<DateProvider> { SystemDateProvider() }
-    single { AppNavController() }
 
     single { SqlDriverFactory.createAndroidSqlite(androidApplication()) } bind SqlDriver::class
     single { AppDb(get()) }

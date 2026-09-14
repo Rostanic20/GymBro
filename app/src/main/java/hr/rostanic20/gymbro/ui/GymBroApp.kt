@@ -1,5 +1,6 @@
 package hr.rostanic20.gymbro.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -11,24 +12,33 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.navigation.AppDestination
-import hr.rostanic20.gymbro.navigation.AppNavController
+import hr.rostanic20.gymbro.navigation.AppNavigator
+import hr.rostanic20.gymbro.navigation.rememberAppNavigator
 import hr.rostanic20.gymbro.ui.today.TodayScreen
 import hr.rostanic20.gymbro.ui.train.TrainScreen
 
 private data class Tab(
     val destination: AppDestination,
-    @StringRes val label: Int,
+    @param:StringRes val label: Int,
     val icon: ImageVector,
 )
 
@@ -40,44 +50,61 @@ private val tabs = listOf(
 )
 
 @Composable
-fun GymBroApp(navController: AppNavController) {
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                val root = navController.backStack.first()
-                tabs.forEach { tab ->
-                    NavigationBarItem(
-                        selected = root == tab.destination,
-                        onClick = { navController.navigateToTop(tab.destination) },
-                        icon = { Icon(imageVector = tab.icon, contentDescription = null) },
-                        label = { Text(stringResource(tab.label)) },
-                    )
-                }
-            }
-        },
-    ) { innerPadding ->
-        NavDisplay(
-            backStack = navController.backStack,
-            onBack = { navController.popBackStack() },
-            modifier = Modifier.padding(innerPadding),
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-            entryProvider = entryProvider {
-                entry<AppDestination.Today> {
-                    TodayScreen(onOpenProgram = { navController.navigateToTop(AppDestination.Train) })
-                }
-                entry<AppDestination.Train> {
-                    TrainScreen()
-                }
-                entry<AppDestination.Body> {
-                    PlaceholderScreen(text = stringResource(R.string.body_placeholder))
-                }
-                entry<AppDestination.Progress> {
-                    PlaceholderScreen(text = stringResource(R.string.progress_placeholder))
+fun GymBroApp() {
+    val navigator = rememberAppNavigator()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val entriesByTab: Map<NavKey, List<NavEntry<NavKey>>> = tabs.associate { tab ->
+        tab.destination to key(tab.destination) {
+            rememberTabEntries(navigator.backStack(tab.destination), navigator)
+        }
+    }
+
+    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            bottomBar = {
+                NavigationBar {
+                    tabs.forEach { tab ->
+                        NavigationBarItem(
+                            selected = navigator.currentTab == tab.destination,
+                            onClick = { navigator.selectTab(tab.destination) },
+                            icon = { Icon(imageVector = tab.icon, contentDescription = null) },
+                            label = { Text(stringResource(tab.label)) },
+                        )
+                    }
                 }
             },
-        )
+        ) { innerPadding ->
+            NavDisplay(
+                entries = entriesByTab.getValue(navigator.currentTab),
+                modifier = Modifier.padding(innerPadding),
+                onBack = { navigator.goBack() },
+            )
+            BackHandler(enabled = navigator.isAtTabRootAwayFromHome) { navigator.goBack() }
+        }
     }
 }
+
+@Composable
+private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator): List<NavEntry<NavKey>> =
+    rememberDecoratedNavEntries(
+        backStack = backStack,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        entryProvider = entryProvider {
+            entry<AppDestination.Today> {
+                TodayScreen(onOpenProgram = { navigator.selectTab(AppDestination.Train) })
+            }
+            entry<AppDestination.Train> {
+                TrainScreen()
+            }
+            entry<AppDestination.Body> {
+                PlaceholderScreen(text = stringResource(R.string.body_placeholder))
+            }
+            entry<AppDestination.Progress> {
+                PlaceholderScreen(text = stringResource(R.string.progress_placeholder))
+            }
+        },
+    )

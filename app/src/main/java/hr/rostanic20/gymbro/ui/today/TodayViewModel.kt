@@ -3,17 +3,22 @@ package hr.rostanic20.gymbro.ui.today
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hr.rostanic20.gymbro.core.DateProvider
-import hr.rostanic20.gymbro.core.safeLaunch
 import hr.rostanic20.gymbro.domain.forDate
 import hr.rostanic20.gymbro.domain.model.NutritionTargets
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.domain.nutritionTargets
+import hr.rostanic20.gymbro.domain.programStartFor
 import hr.rostanic20.gymbro.domain.programWeek
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
+import hr.rostanic20.gymbro.ui.UserMessage
+import hr.rostanic20.gymbro.ui.launchReporting
 import hr.rostanic20.gymbro.ui.stateInWhileSubscribed
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import java.time.LocalDate
 
 data class TodayUiState(
@@ -30,9 +35,15 @@ class TodayViewModel(
     private val dates: DateProvider,
 ) : ViewModel() {
 
+    private val _messages = Channel<UserMessage>(Channel.BUFFERED)
+    val messages: Flow<UserMessage> = _messages.receiveAsFlow()
+
     val state: StateFlow<TodayUiState?> =
-        combine(profileRepository.profile(), programRepository.workoutDays()) { profile, days ->
-            val today = dates.today()
+        combine(
+            profileRepository.profile(),
+            programRepository.workoutDays(),
+            dates.todayFlow(),
+        ) { profile, days, today ->
             val week = profile.programStart?.let { programWeek(it, today) }
             TodayUiState(
                 date = today,
@@ -44,6 +55,6 @@ class TodayViewModel(
         }.stateInWhileSubscribed(viewModelScope, null)
 
     fun startProgram() {
-        safeLaunch { profileRepository.setProgramStart(dates.today()) }
+        launchReporting(_messages) { profileRepository.setProgramStart(programStartFor(dates.today())) }
     }
 }

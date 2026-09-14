@@ -40,6 +40,9 @@ android {
         checkReleaseBuilds = false
         disable += setOf("NewerVersionAvailable", "GradleDependency", "AndroidGradlePluginVersion")
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 sqldelight {

@@ -7,7 +7,7 @@ import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
 import hr.rostanic20.gymbro.ui.stateInWhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import java.time.DayOfWeek
 
 data class TrainUiState(
@@ -20,7 +20,8 @@ class TrainViewModel(
     dates: DateProvider,
 ) : ViewModel() {
 
-    val state: StateFlow<TrainUiState?> = programRepository.workoutDays()
-        .map { TrainUiState(days = it, today = dates.today().dayOfWeek) }
-        .stateInWhileSubscribed(viewModelScope, null)
+    val state: StateFlow<TrainUiState?> =
+        combine(programRepository.workoutDays(), dates.todayFlow()) { days, today ->
+            TrainUiState(days = days, today = today.dayOfWeek)
+        }.stateInWhileSubscribed(viewModelScope, null)
 }

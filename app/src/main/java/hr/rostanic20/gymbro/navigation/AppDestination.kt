@@ -17,3 +17,10 @@ sealed interface AppDestination : NavKey {
     @Serializable
     data object Progress : AppDestination
 }
+
+val TopLevelDestinations: List<AppDestination> = listOf(
+    AppDestination.Today,
+    AppDestination.Train,
+    AppDestination.Body,
+    AppDestination.Progress,
+)

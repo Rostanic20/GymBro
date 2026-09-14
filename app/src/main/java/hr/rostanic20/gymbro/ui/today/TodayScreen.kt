@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,6 +25,8 @@ import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.model.NutritionPhase
 import hr.rostanic20.gymbro.domain.model.NutritionTargets
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
+import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
+import hr.rostanic20.gymbro.ui.ObserveAsEvents
 import hr.rostanic20.gymbro.ui.common.setsRepsLabel
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import org.koin.compose.viewmodel.koinViewModel
@@ -36,6 +39,9 @@ fun TodayScreen(
     viewModel: TodayViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = LocalSnackbarHostState.current
+    val resources = LocalResources.current
+    ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
     state?.let {
         TodayContent(
             state = it,
