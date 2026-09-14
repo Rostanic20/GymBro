@@ -35,6 +35,11 @@ android {
     buildFeatures {
         compose = true
     }
+    lint {
+        warningsAsErrors = true
+        checkReleaseBuilds = false
+        disable += setOf("NewerVersionAvailable", "GradleDependency", "AndroidGradlePluginVersion")
+    }
 }
 
 sqldelight {
