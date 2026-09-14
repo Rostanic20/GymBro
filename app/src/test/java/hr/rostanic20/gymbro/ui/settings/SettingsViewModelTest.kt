@@ -1,6 +1,7 @@
 package hr.rostanic20.gymbro.ui.settings
 
 import hr.rostanic20.gymbro.ui.UserMessage
+import hr.rostanic20.gymbro.util.FakeMealReminderScheduler
 import hr.rostanic20.gymbro.util.FakeProfileRepository
 import hr.rostanic20.gymbro.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -9,6 +10,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
@@ -21,7 +23,8 @@ class SettingsViewModelTest {
 
     private val monday = LocalDate.of(2026, 9, 14)
     private val profiles = FakeProfileRepository()
-    private val viewModel by lazy { SettingsViewModel(profiles) }
+    private val scheduler = FakeMealReminderScheduler()
+    private val viewModel by lazy { SettingsViewModel(profiles, scheduler) }
 
     @Test
     fun `a Saturday pick starts the program the following Monday`() = runTest {
@@ -58,5 +61,24 @@ class SettingsViewModelTest {
 
         assertEquals(UserMessage.SaveFailed, viewModel.messages.first())
         assertEquals(2450, profiles.current.maintenanceKcal)
+    }
+
+    @Test
+    fun `turning reminders on saves it and schedules the next one`() = runTest {
+        viewModel.setMealReminders(true)
+        advanceUntilIdle()
+
+        assertTrue(profiles.current.mealRemindersEnabled)
+        assertEquals(listOf(true), scheduler.calls)
+    }
+
+    @Test
+    fun `reminders are not rescheduled when saving the choice fails`() = runTest {
+        profiles.failWrites = true
+
+        viewModel.setMealReminders(true)
+
+        assertEquals(UserMessage.SaveFailed, viewModel.messages.first())
+        assertTrue(scheduler.calls.isEmpty())
     }
 }

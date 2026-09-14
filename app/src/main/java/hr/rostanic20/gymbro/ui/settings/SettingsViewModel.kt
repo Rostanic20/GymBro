@@ -2,6 +2,7 @@ package hr.rostanic20.gymbro.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import hr.rostanic20.gymbro.core.MealReminderScheduler
 import hr.rostanic20.gymbro.domain.model.Profile
 import hr.rostanic20.gymbro.domain.programStartFor
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
@@ -16,6 +17,7 @@ import java.time.LocalDate
 
 class SettingsViewModel(
     private val profileRepository: ProfileRepository,
+    private val mealReminders: MealReminderScheduler,
 ) : ViewModel() {
 
     private val _messages = Channel<UserMessage>(Channel.BUFFERED)
@@ -36,6 +38,13 @@ class SettingsViewModel(
         launchReporting(_messages) {
             profileRepository.setTargets(targets.maintenanceKcal, targets.surplusKcal, targets.proteinG, targets.fatG)
             _messages.send(UserMessage.TargetsSaved)
+        }
+    }
+
+    fun setMealReminders(enabled: Boolean) {
+        launchReporting(_messages) {
+            profileRepository.setMealReminders(enabled)
+            mealReminders.reschedule(enabled)
         }
     }
 }

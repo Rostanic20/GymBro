@@ -32,6 +32,9 @@ import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.navigation.AppDestination
 import hr.rostanic20.gymbro.navigation.AppNavigator
 import hr.rostanic20.gymbro.navigation.rememberAppNavigator
+import hr.rostanic20.gymbro.ui.foods.FoodEditScreen
+import hr.rostanic20.gymbro.ui.foods.FoodsScreen
+import hr.rostanic20.gymbro.ui.meal.MealScreen
 import hr.rostanic20.gymbro.ui.session.SessionScreen
 import hr.rostanic20.gymbro.ui.settings.SettingsScreen
 import hr.rostanic20.gymbro.ui.today.TodayScreen
@@ -96,13 +99,16 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
         ),
         entryProvider = entryProvider {
             entry<AppDestination.Today> {
-                TodayScreen(onOpenWorkout = { navigator.navigate(AppDestination.Workout(it)) })
+                TodayScreen(
+                    onOpenWorkout = { navigator.navigate(AppDestination.Workout(it)) },
+                    onOpenMeal = { epochDay, slot -> navigator.navigate(AppDestination.Meal(epochDay, slot)) },
+                )
             }
             entry<AppDestination.Train> {
                 TrainScreen()
             }
             entry<AppDestination.Settings> {
-                SettingsScreen()
+                SettingsScreen(onOpenFoods = { navigator.navigate(AppDestination.Foods) })
             }
             entry<AppDestination.Workout> { destination ->
                 WorkoutScreen(
@@ -113,6 +119,18 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
             }
             entry<AppDestination.Session> { destination ->
                 SessionScreen(sessionId = destination.sessionId, onClose = { navigator.goBack() })
+            }
+            entry<AppDestination.Meal> { destination ->
+                MealScreen(epochDay = destination.epochDay, slot = destination.slot, onBack = { navigator.goBack() })
+            }
+            entry<AppDestination.Foods> {
+                FoodsScreen(
+                    onBack = { navigator.goBack() },
+                    onEditFood = { navigator.navigate(AppDestination.FoodEdit(it)) },
+                )
+            }
+            entry<AppDestination.FoodEdit> { destination ->
+                FoodEditScreen(foodId = destination.foodId, onDone = { navigator.goBack() })
             }
         },
     )

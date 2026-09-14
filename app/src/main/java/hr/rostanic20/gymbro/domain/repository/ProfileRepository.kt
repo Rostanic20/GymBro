@@ -8,4 +8,5 @@ interface ProfileRepository {
     fun profile(): Flow<Profile>
     suspend fun setProgramStart(date: LocalDate?)
     suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int)
+    suspend fun setMealReminders(enabled: Boolean)
 }

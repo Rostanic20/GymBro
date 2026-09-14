@@ -13,6 +13,7 @@ import hr.rostanic20.gymbro.domain.model.Alternative
 import hr.rostanic20.gymbro.domain.nutritionTargets
 import hr.rostanic20.gymbro.ui.today.TodayContent
 import hr.rostanic20.gymbro.ui.today.TodayUiState
+import hr.rostanic20.gymbro.ui.today.WorkoutStatus
 import hr.rostanic20.gymbro.ui.workout.ExerciseItem
 import hr.rostanic20.gymbro.ui.workout.LoadSettings
 import hr.rostanic20.gymbro.ui.workout.LoadSettingsDialog
@@ -81,12 +82,14 @@ class ScreensUiTest {
                         programStart = null,
                         week = null,
                         workout = null,
-                        workoutStatus = hr.rostanic20.gymbro.ui.today.WorkoutStatus.NOT_STARTED,
+                        workoutStatus = WorkoutStatus.NOT_STARTED,
                         targets = defaultProfile.nutritionTargets(week = null),
                         suggestedStart = sunday.plusDays(1),
                     ),
                     onStartProgram = { started = true },
                     onOpenWorkout = {},
+                    onOpenMeal = { _, _ -> },
+                    onSaveWeight = {},
                 )
             }
         }

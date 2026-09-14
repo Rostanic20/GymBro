@@ -1,0 +1,13 @@
+CREATE TABLE body_weight (
+    date_epoch_day INTEGER NOT NULL PRIMARY KEY,
+    weight_kg      REAL    NOT NULL
+);
+
+selectBetween:
+SELECT * FROM body_weight WHERE date_epoch_day BETWEEN ? AND ? ORDER BY date_epoch_day;
+
+upsert:
+INSERT OR REPLACE INTO body_weight(date_epoch_day, weight_kg) VALUES (?, ?);
+
+deleteForDate:
+DELETE FROM body_weight WHERE date_epoch_day = ?;

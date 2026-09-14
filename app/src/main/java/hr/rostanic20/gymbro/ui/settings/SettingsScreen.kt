@@ -1,5 +1,9 @@
 package hr.rostanic20.gymbro.ui.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -27,11 +32,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.MAINTENANCE_WEEKS
@@ -47,8 +55,19 @@ import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import org.koin.compose.viewmodel.koinViewModel
 import java.time.LocalDate
 
+data class SettingsActions(
+    val changeStart: (LocalDate) -> Unit,
+    val reset: () -> Unit,
+    val saveTargets: (Targets) -> Unit,
+    val setMealReminders: (Boolean) -> Unit,
+    val openFoods: () -> Unit,
+)
+
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
+fun SettingsScreen(
+    onOpenFoods: () -> Unit,
+    viewModel: SettingsViewModel = koinViewModel(),
+) {
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
@@ -56,20 +75,19 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
     profile?.let {
         SettingsContent(
             profile = it,
-            onChangeStart = viewModel::changeProgramStart,
-            onReset = viewModel::resetProgram,
-            onSaveTargets = viewModel::saveTargets,
+            actions = SettingsActions(
+                changeStart = viewModel::changeProgramStart,
+                reset = viewModel::resetProgram,
+                saveTargets = viewModel::saveTargets,
+                setMealReminders = viewModel::setMealReminders,
+                openFoods = onOpenFoods,
+            ),
         )
     }
 }
 
 @Composable
-internal fun SettingsContent(
-    profile: Profile,
-    onChangeStart: (LocalDate) -> Unit,
-    onReset: () -> Unit,
-    onSaveTargets: (Targets) -> Unit,
-) {
+internal fun SettingsContent(profile: Profile, actions: SettingsActions) {
     val spacing = LocalSpacing.current
     Column(
         modifier = Modifier
@@ -82,8 +100,13 @@ internal fun SettingsContent(
             text = stringResource(R.string.settings_title),
             style = MaterialTheme.typography.headlineMedium,
         )
-        ProgramCard(programStart = profile.programStart, onChangeStart = onChangeStart, onReset = onReset)
-        TargetsCard(profile = profile, onSave = onSaveTargets)
+        ProgramCard(programStart = profile.programStart, onChangeStart = actions.changeStart, onReset = actions.reset)
+        MealsCard(
+            remindersEnabled = profile.mealRemindersEnabled,
+            onRemindersChange = actions.setMealReminders,
+            onOpenFoods = actions.openFoods,
+        )
+        TargetsCard(profile = profile, onSave = actions.saveTargets)
     }
 }
 
@@ -191,6 +214,57 @@ private fun StartDatePickerDialog(
         },
     ) {
         DatePicker(state = state)
+    }
+}
+
+@Composable
+private fun MealsCard(
+    remindersEnabled: Boolean,
+    onRemindersChange: (Boolean) -> Unit,
+    onOpenFoods: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) onRemindersChange(true)
+    }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(spacing.s16),
+            verticalArrangement = Arrangement.spacedBy(spacing.s8),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_meals_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.settings_meal_reminders),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(
+                    checked = remindersEnabled,
+                    onCheckedChange = { enabled ->
+                        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+                            PackageManager.PERMISSION_GRANTED
+                        if (enabled && !granted) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            onRemindersChange(enabled)
+                        }
+                    },
+                )
+            }
+            Text(
+                text = stringResource(R.string.settings_meal_reminders_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedButton(onClick = onOpenFoods) {
+                Text(stringResource(R.string.settings_open_foods))
+            }
+        }
     }
 }
 
