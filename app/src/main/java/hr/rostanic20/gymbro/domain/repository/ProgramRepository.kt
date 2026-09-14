@@ -5,4 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface ProgramRepository {
     fun workoutDays(): Flow<List<WorkoutDay>>
+    suspend fun updateLoadSettings(exerciseId: Long, startLoadKg: Double?, incrementKg: Double?)
 }

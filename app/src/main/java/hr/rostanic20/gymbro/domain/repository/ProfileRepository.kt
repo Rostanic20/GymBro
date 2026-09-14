@@ -6,5 +6,6 @@ import java.time.LocalDate
 
 interface ProfileRepository {
     fun profile(): Flow<Profile>
-    suspend fun startProgram(date: LocalDate)
+    suspend fun setProgramStart(date: LocalDate?)
+    suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int)
 }

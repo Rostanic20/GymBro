@@ -16,7 +16,11 @@ class ProfileRepositoryImpl(
     override fun profile(): Flow<Profile> =
         local.profile().map { it.toDomain() }.distinctUntilChanged()
 
-    override suspend fun startProgram(date: LocalDate) {
-        local.setProgramStart(date.toEpochDay())
+    override suspend fun setProgramStart(date: LocalDate?) {
+        local.setProgramStart(date?.toEpochDay())
+    }
+
+    override suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int) {
+        local.setTargets(maintenanceKcal, surplusKcal, proteinG, fatG)
     }
 }

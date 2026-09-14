@@ -6,6 +6,7 @@ import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.model.PlannedExercise
 
 private const val SECONDS_PER_MINUTE = 60
+private const val SHOW_AS_MINUTES_FROM_SECONDS = 120
 
 @Composable
 fun rangeLabel(range: IntRange): String =
@@ -20,12 +21,14 @@ fun setsRepsLabel(exercise: PlannedExercise): String =
     stringResource(R.string.sets_reps, exercise.sets, rangeLabel(exercise.reps))
 
 @Composable
-fun restLabel(seconds: Int): String {
-    if (seconds < 2 * SECONDS_PER_MINUTE) return stringResource(R.string.rest_seconds, seconds)
-    val minutes = if (seconds % SECONDS_PER_MINUTE == 0) {
-        (seconds / SECONDS_PER_MINUTE).toString()
+fun restLabel(seconds: IntRange): String {
+    val wholeMinutes = seconds.first % SECONDS_PER_MINUTE == 0 && seconds.last % SECONDS_PER_MINUTE == 0
+    return if (wholeMinutes && seconds.first >= SHOW_AS_MINUTES_FROM_SECONDS) {
+        stringResource(
+            R.string.rest_minutes,
+            rangeLabel(seconds.first / SECONDS_PER_MINUTE..seconds.last / SECONDS_PER_MINUTE),
+        )
     } else {
-        "%.1f".format(seconds.toDouble() / SECONDS_PER_MINUTE)
+        stringResource(R.string.rest_seconds, rangeLabel(seconds))
     }
-    return stringResource(R.string.rest_minutes, minutes)
 }

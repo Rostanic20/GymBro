@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import hr.rostanic20.gymbro.core.DateProvider
 import hr.rostanic20.gymbro.core.DefaultDispatcherProvider
 import hr.rostanic20.gymbro.core.DispatcherProvider
+import hr.rostanic20.gymbro.core.SystemDateProvider
 import hr.rostanic20.gymbro.data.local.ProfileLocalDataSource
 import hr.rostanic20.gymbro.data.local.ProfileLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.ProgramLocalDataSource
@@ -21,11 +22,10 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import java.time.LocalDate
 
 val appModule = module {
     single<DispatcherProvider> { DefaultDispatcherProvider() }
-    single { DateProvider { LocalDate.now() } }
+    single<DateProvider> { SystemDateProvider() }
     single { AppNavController() }
 
     single { SqlDriverFactory.createAndroidSqlite(androidApplication()) } bind SqlDriver::class

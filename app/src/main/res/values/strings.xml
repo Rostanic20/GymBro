@@ -34,7 +34,7 @@
     <string name="sets_reps">%1$d × %2$s</string>
     <string name="range">%1$d–%2$d</string>
     <string name="exercise_prescription">%1$s · RIR %2$s · %3$s</string>
-    <string name="rest_seconds">%1$d s rest</string>
+    <string name="rest_seconds">%1$s s rest</string>
     <string name="rest_minutes">%1$s min rest</string>
     <string name="swap">No machine? %1$s</string>
 

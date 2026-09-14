@@ -8,7 +8,8 @@ import kotlinx.coroutines.withContext
 
 interface ProfileLocalDataSource {
     fun profile(): Flow<UserProfile>
-    suspend fun setProgramStart(epochDay: Long)
+    suspend fun setProgramStart(epochDay: Long?)
+    suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int)
 }
 
 class ProfileLocalDataSourceImpl(
@@ -20,7 +21,14 @@ class ProfileLocalDataSourceImpl(
 
     override fun profile(): Flow<UserProfile> = ds.data
 
-    override suspend fun setProgramStart(epochDay: Long): Unit = withContext(writeContext) {
+    override suspend fun setProgramStart(epochDay: Long?): Unit = withContext(writeContext) {
         ds.updateData { it.copy(programStartEpochDay = epochDay) }
     }
+
+    override suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int): Unit =
+        withContext(writeContext) {
+            ds.updateData {
+                it.copy(maintenanceKcal = maintenanceKcal, surplusKcal = surplusKcal, proteinG = proteinG, fatG = fatG)
+            }
+        }
 }

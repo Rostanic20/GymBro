@@ -13,18 +13,32 @@ data class WorkoutDay(
 }
 
 data class PlannedExercise(
-    val exerciseId: Long,
-    val name: String,
+    val exercise: Exercise,
     val sets: Int,
     val reps: IntRange,
     val rir: IntRange,
-    val restSeconds: Int,
+    val restSeconds: IntRange,
     val isTop: Boolean,
     val note: String?,
-    val substitute: String?,
-    val startLoadKg: Double?,
-    val incrementKg: Double,
-    val progression: Progression,
+    val alternatives: List<Alternative>,
 )
 
-enum class Progression { LOAD, REPS_FIRST, BODYWEIGHT }
+data class Exercise(
+    val id: Long,
+    val name: String,
+    val loadType: LoadType,
+    val progression: Progression,
+    val startLoadKg: Double?,
+    val incrementKg: Double?,
+    val barWeightKg: Double?,
+)
+
+data class Alternative(
+    val exerciseId: Long,
+    val name: String,
+    val note: String?,
+)
+
+enum class LoadType { WEIGHT, ASSISTANCE, BODYWEIGHT }
+
+enum class Progression { DOUBLE, REPS_FIRST }

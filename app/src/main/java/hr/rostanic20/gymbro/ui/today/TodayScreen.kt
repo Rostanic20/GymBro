@@ -202,7 +202,7 @@ private fun WorkoutSummaryCard(workout: WorkoutDay?, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(spacing.s8),
                 ) {
                     Text(
-                        text = exercise.name,
+                        text = exercise.exercise.name,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )

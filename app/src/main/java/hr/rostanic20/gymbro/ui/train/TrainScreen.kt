@@ -118,7 +118,7 @@ private fun ExerciseRow(exercise: PlannedExercise) {
             horizontalArrangement = Arrangement.spacedBy(spacing.s8),
         ) {
             Text(
-                text = exercise.name,
+                text = exercise.exercise.name,
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f, fill = false),
             )
@@ -143,9 +143,9 @@ private fun ExerciseRow(exercise: PlannedExercise) {
         exercise.note?.let {
             Text(text = it, style = MaterialTheme.typography.bodySmall)
         }
-        exercise.substitute?.let {
+        exercise.alternatives.forEach { alternative ->
             Text(
-                text = stringResource(R.string.swap, it),
+                text = stringResource(R.string.swap, alternative.name),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

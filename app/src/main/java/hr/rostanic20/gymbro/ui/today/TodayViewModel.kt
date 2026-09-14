@@ -44,6 +44,6 @@ class TodayViewModel(
         }.stateInWhileSubscribed(viewModelScope, null)
 
     fun startProgram() {
-        safeLaunch { profileRepository.startProgram(dates.today()) }
+        safeLaunch { profileRepository.setProgramStart(dates.today()) }
     }
 }

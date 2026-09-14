@@ -6,13 +6,18 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import hr.rostanic20.gymbro.data.local.ProgramLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.repository.ProgramRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
+import hr.rostanic20.gymbro.domain.model.LoadType
+import hr.rostanic20.gymbro.domain.model.PlannedExercise
 import hr.rostanic20.gymbro.domain.model.Progression
 import hr.rostanic20.gymbro.util.TestDispatcherProvider
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
 
@@ -28,14 +33,17 @@ class ProgramSeedTest {
         driver.close()
     }
 
+    private fun TestScope.repository(): ProgramRepositoryImpl {
+        val dispatchers = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+        return ProgramRepositoryImpl(ProgramLocalDataSourceImpl(db, dispatchers), dispatchers)
+    }
+
+    private suspend fun ProgramRepositoryImpl.exercisesByName(): Map<String, PlannedExercise> =
+        workoutDays().first().flatMap { it.exercises }.associateBy { it.exercise.name }
+
     @Test
     fun `seeded program matches the four training days`() = runTest {
-        val repository = ProgramRepositoryImpl(
-            ProgramLocalDataSourceImpl(db),
-            TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)),
-        )
-
-        val days = repository.workoutDays().first()
+        val days = repository().workoutDays().first()
 
         assertEquals(listOf("Upper A", "Lower A", "Upper B", "Lower B"), days.map { it.name })
         assertEquals(
@@ -45,21 +53,50 @@ class ProgramSeedTest {
         assertEquals(listOf(18, 14, 18, 16), days.map { it.workingSets })
         assertEquals(
             listOf("Barbell bench press", "Back squat", "Pull-up", "Romanian deadlift"),
-            days.map { day -> day.exercises.single { it.isTop }.name },
+            days.map { day -> day.exercises.single { it.isTop }.exercise.name },
         )
     }
 
     @Test
-    fun `seeded exercises carry their progression rules`() = runTest {
-        val exercises = ProgramLocalDataSourceImpl(db).program().first().toWorkoutDays()
-            .flatMap { it.exercises }
-            .associateBy { it.name }
+    fun `exercises carry load type, progression and rest range`() = runTest {
+        val exercises = repository().exercisesByName()
 
-        assertEquals(40.0, exercises.getValue("Back squat").startLoadKg)
-        assertEquals(5.0, exercises.getValue("Back squat").incrementKg, 0.0)
-        assertEquals(Progression.REPS_FIRST, exercises.getValue("DB lateral raise").progression)
-        assertEquals(Progression.BODYWEIGHT, exercises.getValue("Pull-up").progression)
-        assertEquals(180, exercises.getValue("Barbell bench press").restSeconds)
+        val squat = exercises.getValue("Back squat").exercise
+        assertEquals(LoadType.WEIGHT, squat.loadType)
+        assertEquals(40.0, squat.startLoadKg)
+        assertEquals(5.0, squat.incrementKg)
+        assertEquals(20.0, squat.barWeightKg)
+        assertEquals(LoadType.ASSISTANCE, exercises.getValue("Pull-up").exercise.loadType)
+        assertEquals(Progression.REPS_FIRST, exercises.getValue("DB lateral raise").exercise.progression)
+        assertEquals(LoadType.BODYWEIGHT, exercises.getValue("Hanging leg raise").exercise.loadType)
+        assertNull(exercises.getValue("Hanging leg raise").exercise.incrementKg)
+        assertEquals(180..180, exercises.getValue("Barbell bench press").restSeconds)
+        assertEquals(120..180, exercises.getValue("Leg press").restSeconds)
+    }
+
+    @Test
+    fun `either-or slots are separate exercises linked as alternatives`() = runTest {
+        val exercises = repository().exercisesByName()
+
+        assertTrue(exercises.keys.none { " or " in it })
+        assertEquals(listOf("Bulgarian split squat"), exercises.getValue("Hack squat").alternatives.map { it.name })
+        assertEquals(listOf("Cable fly", "Dumbbell fly"), exercises.getValue("Pec deck").alternatives.map { it.name })
+        assertEquals(
+            listOf("Band-assisted pull-up", "Lat pulldown, wide grip"),
+            exercises.getValue("Pull-up").alternatives.map { it.name },
+        )
+    }
+
+    @Test
+    fun `load settings update is saved and emitted`() = runTest {
+        val repository = repository()
+        val legPress = repository.exercisesByName().getValue("Leg press").exercise
+
+        repository.updateLoadSettings(legPress.id, startLoadKg = 80.0, incrementKg = 10.0)
+
+        val updated = repository.exercisesByName().getValue("Leg press").exercise
+        assertEquals(80.0, updated.startLoadKg)
+        assertEquals(10.0, updated.incrementKg)
     }
 
     @Test

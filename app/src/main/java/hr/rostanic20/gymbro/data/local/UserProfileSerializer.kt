@@ -12,7 +12,10 @@ import java.io.OutputStream
 
 @OptIn(ExperimentalSerializationApi::class)
 object UserProfileSerializer : Serializer<UserProfile> {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
     override val defaultValue: UserProfile
         get() = UserProfile()
