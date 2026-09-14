@@ -14,10 +14,13 @@ import hr.rostanic20.gymbro.data.repository.ProgramRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
+import hr.rostanic20.gymbro.ui.settings.SettingsViewModel
 import hr.rostanic20.gymbro.ui.today.TodayViewModel
 import hr.rostanic20.gymbro.ui.train.TrainViewModel
+import hr.rostanic20.gymbro.ui.workout.WorkoutViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -36,4 +39,6 @@ val appModule = module {
 
     viewModelOf(::TodayViewModel)
     viewModelOf(::TrainViewModel)
+    viewModelOf(::SettingsViewModel)
+    viewModel { (dayId: Long) -> WorkoutViewModel(dayId, get(), get(), get()) }
 }

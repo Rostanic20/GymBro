@@ -11,12 +11,12 @@ import java.time.temporal.TemporalAdjusters
 
 const val MAINTENANCE_WEEKS = 2
 const val DELOAD_EVERY_WEEKS = 8
+const val KCAL_PER_G_PROTEIN = 4
+const val KCAL_PER_G_CARBS = 4
+const val KCAL_PER_G_FAT = 9
 
 private const val CALIBRATION_WEEKS = 1
 private const val DAYS_PER_WEEK = 7L
-private const val KCAL_PER_G_PROTEIN = 4
-private const val KCAL_PER_G_CARBS = 4
-private const val KCAL_PER_G_FAT = 9
 
 fun programStartFor(date: LocalDate): LocalDate = when (date.dayOfWeek) {
     DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
@@ -29,6 +29,8 @@ fun programWeek(start: LocalDate, date: LocalDate): Int? {
     if (date < firstMonday) return null
     return (ChronoUnit.DAYS.between(firstMonday, date) / DAYS_PER_WEEK).toInt() + 1
 }
+
+fun Profile.weekOn(date: LocalDate): Int? = programStart?.let { programWeek(it, date) }
 
 fun isCalibrationWeek(week: Int?): Boolean = week == null || week <= CALIBRATION_WEEKS
 
@@ -55,3 +57,8 @@ fun Profile.nutritionTargets(week: Int?): NutritionTargets {
 
 fun List<WorkoutDay>.forDate(date: LocalDate): WorkoutDay? =
     firstOrNull { it.dayOfWeek == date.dayOfWeek }
+
+fun List<WorkoutDay>.nextFrom(date: LocalDate): WorkoutDay? {
+    val byWeekday = sortedBy { it.dayOfWeek }
+    return byWeekday.firstOrNull { it.dayOfWeek >= date.dayOfWeek } ?: byWeekday.firstOrNull()
+}

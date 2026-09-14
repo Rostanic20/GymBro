@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 
 enum class UserMessage(@param:StringRes val text: Int) {
     SaveFailed(R.string.message_save_failed),
+    TargetsSaved(R.string.message_targets_saved),
 }
 
 fun ViewModel.launchReporting(messages: SendChannel<UserMessage>, block: suspend () -> Unit): Job =

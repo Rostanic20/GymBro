@@ -3,23 +3,36 @@
 
     <string name="tab_today">Today</string>
     <string name="tab_train">Train</string>
-    <string name="tab_body">Body</string>
-    <string name="tab_progress">Progress</string>
+    <string name="tab_settings">Settings</string>
+
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_back">Back</string>
+
+    <string name="message_save_failed">Saving failed. Try again.</string>
+    <string name="message_targets_saved">Targets saved</string>
 
     <string name="today_week">Week %1$d</string>
+    <string name="today_starts_on">Program starts %1$s</string>
     <string name="today_not_started_title">Program not started</string>
-    <string name="today_not_started_body">Weeks 1–2 hold maintenance at %1$,d kcal every day, travel weekend included. The surplus starts in week 3.</string>
-    <string name="today_start_program">Start this week</string>
+    <string name="today_not_started_body">Weeks 1–2 hold maintenance at %1$s kcal every day, travel weekend included. The surplus starts in week 3.</string>
+    <string name="today_start_this_week">Start this week</string>
+    <string name="today_start_on">Start %1$s</string>
     <string name="phase_maintenance">Maintenance · prove you can hit it every day</string>
     <string name="phase_surplus">Surplus · aim for 0.3 kg a week</string>
     <string name="target_kcal">kcal</string>
     <string name="target_protein">Protein</string>
     <string name="target_fat">Fat</string>
     <string name="target_carbs">Carbs</string>
-    <string name="kcal_value">%1$,d</string>
     <string name="grams_value">%1$d g</string>
     <string name="today_travel_title">Travel day</string>
     <string name="today_travel_body">Walk, eat, sleep. Keep both shakes and keep protein up.</string>
+    <string name="today_open_workout">Open workout</string>
+
+    <string name="week_calibration_title">Week 1 · calibration</string>
+    <string name="week_calibration_body">Find the weight that leaves 2 reps in the tank, write it down, and don\'t progress anything yet.</string>
+    <string name="week_deload_title">Deload · week %1$d</string>
+    <string name="week_deload_body">Sets are halved. Keep the weights, recover, and start climbing again next week.</string>
 
     <string name="train_title">Program</string>
     <string name="train_rest_days">Fri–Sun · travel · walk, eat, sleep</string>
@@ -31,15 +44,51 @@
         <item quantity="one">%d working set</item>
         <item quantity="other">%d working sets</item>
     </plurals>
+    <string name="expand_day">Show exercises</string>
+    <string name="collapse_day">Hide exercises</string>
+    <string name="expand_details">Show details</string>
+    <string name="collapse_details">Hide details</string>
     <string name="sets_reps">%1$d × %2$s</string>
     <string name="range">%1$d–%2$d</string>
     <string name="exercise_prescription">%1$s · RIR %2$s · %3$s</string>
     <string name="rest_seconds">%1$s s rest</string>
     <string name="rest_minutes">%1$s min rest</string>
-    <string name="swap">No machine? %1$s</string>
+    <string name="load_weight">Start %1$s kg · steps of %2$s kg</string>
+    <string name="load_weight_unknown">Start weight: find it in week one · steps of %1$s kg</string>
+    <string name="load_assistance">Assistance %1$s kg · drop by %2$s kg</string>
+    <string name="load_assistance_unknown">Assistance: find it in week one · drop by %1$s kg</string>
+    <string name="load_bodyweight">Bodyweight</string>
+    <string name="alternatives_title">No machine?</string>
+    <string name="alternative_with_note">%1$s: %2$s</string>
+    <string name="edit_weights">Edit weights</string>
+    <string name="load_dialog_start_weight">Starting weight (kg)</string>
+    <string name="load_dialog_start_assistance">Starting assistance (kg)</string>
+    <string name="load_dialog_start_hint">Leave empty until you\'ve found it</string>
+    <string name="load_dialog_increment">Step (kg)</string>
+    <string name="load_dialog_increment_hint">Added once every set hits the top of the rep range</string>
+    <string name="load_dialog_assistance_increment_hint">Removed once every set hits the top of the rep range</string>
 
-    <string name="message_save_failed">Saving failed. Try again.</string>
+    <string name="warmup_title">Warm-up</string>
+    <string name="warmup_bike">5 min bike, then ramp %1$s:</string>
+    <string name="warmup_set">%1$s kg × %2$d</string>
+    <string name="warmup_generic">5 min bike, then ramp %1$s: empty bar × 10, 50%% × 5, 70%% × 3, 85%% × 1.</string>
+    <string name="warmup_no_bar">5 min bike, then two light sets of %1$s.</string>
 
-    <string name="body_placeholder">Weight, waist and progress photos arrive in phase 4.</string>
-    <string name="progress_placeholder">Bodyweight and lift charts arrive in phase 5.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_program_title">Program</string>
+    <string name="settings_program_started">Started %1$s</string>
+    <string name="settings_program_not_started">Not started yet</string>
+    <string name="settings_program_note">Weeks run Monday to Sunday. Picking a Friday to Sunday starts the program the following Monday.</string>
+    <string name="settings_change_start">Change start date</string>
+    <string name="settings_start_program">Pick start date</string>
+    <string name="settings_reset_program">Reset</string>
+    <string name="settings_reset_title">Reset the program?</string>
+    <string name="settings_reset_body">Week numbers and calorie staging start over when you pick a new start date.</string>
+    <string name="settings_targets_title">Nutrition targets</string>
+    <string name="settings_maintenance">Maintenance (kcal)</string>
+    <string name="settings_surplus">Surplus (kcal)</string>
+    <string name="settings_protein">Protein (g)</string>
+    <string name="settings_fat">Fat (g)</string>
+    <string name="settings_targets_preview">From week 3: %1$s kcal · %2$s g carbs</string>
+    <string name="settings_targets_invalid">Check the numbers. Protein and fat can\'t add up to more than maintenance.</string>
 </resources>

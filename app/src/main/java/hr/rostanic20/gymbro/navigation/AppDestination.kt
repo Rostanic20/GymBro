@@ -12,15 +12,14 @@ sealed interface AppDestination : NavKey {
     data object Train : AppDestination
 
     @Serializable
-    data object Body : AppDestination
+    data object Settings : AppDestination
 
     @Serializable
-    data object Progress : AppDestination
+    data class Workout(val dayId: Long) : AppDestination
 }
 
 val TopLevelDestinations: List<AppDestination> = listOf(
     AppDestination.Today,
     AppDestination.Train,
-    AppDestination.Body,
-    AppDestination.Progress,
+    AppDestination.Settings,
 )

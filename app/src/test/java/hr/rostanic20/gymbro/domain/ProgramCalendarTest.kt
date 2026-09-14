@@ -145,4 +145,19 @@ class ProgramCalendarTest {
         assertNull(days.forDate(monday.plusDays(4)))
         assertNull(days.forDate(monday.plusDays(6)))
     }
+
+    @Test
+    fun `week on a date is empty until the program has a start`() {
+        assertNull(profile.copy(programStart = null).weekOn(monday))
+        assertEquals(2, profile.weekOn(monday.plusDays(7)))
+    }
+
+    @Test
+    fun `next training day is today, a later day this week, or next Monday`() {
+        val days = DayOfWeek.entries.take(4).reversed().map { WorkoutDay(it.value.toLong(), it.name, "", it, emptyList()) }
+
+        assertEquals(DayOfWeek.WEDNESDAY, days.nextFrom(monday.plusDays(2))?.dayOfWeek)
+        assertEquals(DayOfWeek.MONDAY, days.nextFrom(monday.plusDays(4))?.dayOfWeek)
+        assertNull(emptyList<WorkoutDay>().nextFrom(monday))
+    }
 }

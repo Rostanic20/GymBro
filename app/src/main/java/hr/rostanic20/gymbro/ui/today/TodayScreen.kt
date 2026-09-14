@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -27,15 +31,17 @@ import hr.rostanic20.gymbro.domain.model.NutritionTargets
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.formatCount
+import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.setsRepsLabel
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
+import hr.rostanic20.gymbro.ui.workout.WeekBanner
+import hr.rostanic20.gymbro.ui.workout.showsWeekBanner
 import org.koin.compose.viewmodel.koinViewModel
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun TodayScreen(
-    onOpenProgram: () -> Unit,
+    onOpenWorkout: (dayId: Long) -> Unit,
     viewModel: TodayViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,56 +49,63 @@ fun TodayScreen(
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
     state?.let {
-        TodayContent(
-            state = it,
-            onStartProgram = viewModel::startProgram,
-            onOpenProgram = onOpenProgram,
-        )
+        TodayContent(state = it, onStartProgram = viewModel::startProgram, onOpenWorkout = onOpenWorkout)
     }
 }
 
 @Composable
-private fun TodayContent(
+internal fun TodayContent(
     state: TodayUiState,
     onStartProgram: () -> Unit,
-    onOpenProgram: () -> Unit,
+    onOpenWorkout: (dayId: Long) -> Unit,
 ) {
     val spacing = LocalSpacing.current
+    val week = state.week
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(spacing.s16),
         verticalArrangement = Arrangement.spacedBy(spacing.s16),
     ) {
-        item { TodayHeader(date = state.date, week = state.week) }
-        if (!state.programStarted) {
-            item { NotStartedCard(maintenanceKcal = state.targets.kcal, onStartProgram = onStartProgram) }
+        item { TodayHeader(state = state) }
+        if (state.programStart == null) {
+            item { NotStartedCard(state = state, onStartProgram = onStartProgram) }
+        }
+        if (week != null && showsWeekBanner(week)) {
+            item { WeekBanner(week = week) }
         }
         item { TargetsCard(targets = state.targets) }
-        item { WorkoutSummaryCard(workout = state.workout, onClick = onOpenProgram) }
+        item { WorkoutSummaryCard(workout = state.workout, onOpenWorkout = onOpenWorkout) }
     }
 }
 
 @Composable
-private fun TodayHeader(date: LocalDate, week: Int?) {
-    val formatter = remember { DateTimeFormatter.ofPattern("EEEE, d MMMM") }
+private fun TodayHeader(state: TodayUiState) {
+    val formatter = rememberDayFormatter()
+    val label = when {
+        state.week != null -> stringResource(R.string.today_week, state.week)
+        state.programStart != null -> stringResource(R.string.today_starts_on, state.programStart.format(formatter))
+        else -> null
+    }
     Column {
-        if (week != null) {
+        label?.let {
             Text(
-                text = stringResource(R.string.today_week, week),
+                text = it,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
         }
         Text(
-            text = date.format(formatter),
+            text = state.date.format(formatter),
             style = MaterialTheme.typography.headlineMedium,
         )
     }
 }
 
 @Composable
-private fun NotStartedCard(maintenanceKcal: Int, onStartProgram: () -> Unit) {
+private fun NotStartedCard(state: TodayUiState, onStartProgram: () -> Unit) {
     val spacing = LocalSpacing.current
+    val locale = LocalLocale.current.platformLocale
+    val formatter = rememberDayFormatter()
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -109,11 +122,17 @@ private fun NotStartedCard(maintenanceKcal: Int, onStartProgram: () -> Unit) {
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
-                text = stringResource(R.string.today_not_started_body, maintenanceKcal),
+                text = stringResource(R.string.today_not_started_body, formatCount(state.targets.kcal, locale)),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Button(onClick = onStartProgram) {
-                Text(stringResource(R.string.today_start_program))
+                Text(
+                    if (state.suggestedStart <= state.date) {
+                        stringResource(R.string.today_start_this_week)
+                    } else {
+                        stringResource(R.string.today_start_on, state.suggestedStart.format(formatter))
+                    },
+                )
             }
         }
     }
@@ -122,6 +141,7 @@ private fun NotStartedCard(maintenanceKcal: Int, onStartProgram: () -> Unit) {
 @Composable
 private fun TargetsCard(targets: NutritionTargets) {
     val spacing = LocalSpacing.current
+    val locale = LocalLocale.current.platformLocale
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(spacing.s16),
@@ -141,10 +161,7 @@ private fun TargetsCard(targets: NutritionTargets) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                TargetValue(
-                    value = stringResource(R.string.kcal_value, targets.kcal),
-                    label = stringResource(R.string.target_kcal),
-                )
+                TargetValue(value = formatCount(targets.kcal, locale), label = stringResource(R.string.target_kcal))
                 TargetValue(
                     value = stringResource(R.string.grams_value, targets.proteinG),
                     label = stringResource(R.string.target_protein),
@@ -175,14 +192,14 @@ private fun TargetValue(value: String, label: String) {
 }
 
 @Composable
-private fun WorkoutSummaryCard(workout: WorkoutDay?, onClick: () -> Unit) {
+private fun WorkoutSummaryCard(workout: WorkoutDay?, onOpenWorkout: (dayId: Long) -> Unit) {
     val spacing = LocalSpacing.current
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(spacing.s16),
-            verticalArrangement = Arrangement.spacedBy(spacing.s8),
-        ) {
-            if (workout == null) {
+    if (workout == null) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(spacing.s16),
+                verticalArrangement = Arrangement.spacedBy(spacing.s8),
+            ) {
                 Text(
                     text = stringResource(R.string.today_travel_title),
                     style = MaterialTheme.typography.titleMedium,
@@ -191,29 +208,43 @@ private fun WorkoutSummaryCard(workout: WorkoutDay?, onClick: () -> Unit) {
                     text = stringResource(R.string.today_travel_body),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                return@Column
             }
-            Text(
-                text = stringResource(R.string.day_title, workout.name, workout.emphasis),
-                style = MaterialTheme.typography.titleMedium,
-            )
+        }
+        return
+    }
+    Card(onClick = { onOpenWorkout(workout.id) }, modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(spacing.s16),
+            verticalArrangement = Arrangement.spacedBy(spacing.s8),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.day_title, workout.name, workout.emphasis),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.today_open_workout),
+                )
+            }
             Text(
                 text = pluralStringResource(R.plurals.working_sets, workout.workingSets, workout.workingSets),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            workout.exercises.forEach { exercise ->
+            workout.exercises.forEach { planned ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(spacing.s8),
                 ) {
                     Text(
-                        text = exercise.exercise.name,
+                        text = planned.exercise.name,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = setsRepsLabel(exercise),
+                        text = setsRepsLabel(planned),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
