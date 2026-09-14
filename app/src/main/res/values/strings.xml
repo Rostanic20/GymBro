@@ -91,4 +91,71 @@
     <string name="settings_fat">Fat (g)</string>
     <string name="settings_targets_preview">From week 3: %1$s kcal · %2$s g carbs</string>
     <string name="settings_targets_invalid">Check the numbers. Protein and fat can\'t add up to more than maintenance.</string>
+
+    <string name="status_in_progress">In progress</string>
+    <string name="status_logged">Logged</string>
+    <string name="start_workout">Start workout</string>
+    <string name="continue_workout">Continue workout</string>
+    <string name="finish_other_first">Finish your %1$s workout first</string>
+    <string name="open_other_session">Open %1$s</string>
+    <string name="logged_today">Already logged today</string>
+
+    <string name="session_finish">Finish</string>
+    <string name="session_discard">Discard</string>
+    <string name="session_discard_title">Discard this workout?</string>
+    <string name="session_discard_body">Every set logged in this workout will be deleted.</string>
+    <string name="session_deload_subtitle">Deload · half the sets, same weights</string>
+    <string name="session_swap">Swap</string>
+    <string name="session_swap_title">Swap exercise</string>
+    <string name="session_note_label">How did it go?</string>
+    <string name="session_note_placeholder">Slept badly, rack was taken, rushed…</string>
+    <string name="stall_title">Your top set lost reps two sessions running</string>
+    <string name="stall_body">Take a deload week: half the sets, same weights. A travel week off counts.</string>
+
+    <string name="field_weight">kg</string>
+    <string name="field_assistance">Assist kg</string>
+    <string name="field_reps">Reps</string>
+    <string name="field_rir">RIR</string>
+    <string name="log_set">Log set</string>
+    <string name="edit_set_title">Edit set</string>
+    <string name="delete_set">Delete</string>
+    <plurals name="sets_progress">
+        <item quantity="one">%1$d of %2$d set</item>
+        <item quantity="other">%1$d of %2$d sets</item>
+    </plurals>
+    <string name="set_weight">%1$s kg × %2$d</string>
+    <string name="set_assisted">%1$s kg assist × %2$d</string>
+    <plurals name="set_bodyweight">
+        <item quantity="one">%d rep</item>
+        <item quantity="other">%d reps</item>
+    </plurals>
+    <string name="set_with_rir">%1$s · RIR %2$d</string>
+    <string name="last_time_weight">Last time: %1$s kg × %2$s</string>
+    <string name="last_time_assisted">Last time: %1$s kg assist × %2$s</string>
+    <string name="last_time_reps">Last time: %1$s</string>
+
+    <string name="suggest_reps">Aim for %1$s reps</string>
+    <string name="suggest_find_weight">First time: find a weight that leaves %1$s reps in reserve</string>
+    <string name="suggest_start_weight">First time: start at %1$s kg</string>
+    <string name="suggest_start_assisted">First time: start with %1$s kg of assistance</string>
+    <string name="suggest_calibrate">Week 1: find a weight that leaves %1$s reps in reserve</string>
+    <string name="suggest_calibrate_from">Week 1: start around %1$s kg and adjust to leave %2$s reps in reserve</string>
+    <string name="suggest_repeat_weight">Same %1$s kg, beat last time (%2$s)</string>
+    <string name="suggest_repeat_assisted">Same %1$s kg of assistance, beat last time (%2$s)</string>
+    <string name="suggest_repeat_reps">Beat last time (%1$s)</string>
+    <string name="suggest_increase">Every set hit the top: go to %1$s kg, reps from %2$d</string>
+    <string name="suggest_less_assistance">Every set hit the top: drop to %1$s kg of assistance, reps from %2$d</string>
+    <string name="suggest_deload">Deload: same weight, half the sets</string>
+    <string name="suggest_deload_weight">Deload: same %1$s kg, half the sets</string>
+    <string name="suggest_add_belt">Every set hit the top without assistance: add a belt</string>
+    <string name="suggest_make_harder">Every set hit the top: slow the lowering or add a pause</string>
+
+    <string name="rest_remaining">Rest %1$s</string>
+    <string name="rest_over">Rest over, next set</string>
+    <string name="rest_add_30">+30 s</string>
+    <string name="rest_skip">Skip</string>
+    <string name="rest_dismiss">Dismiss</string>
+    <string name="rest_channel_name">Rest timer</string>
+    <string name="rest_done_title">Rest over</string>
+    <string name="rest_done_body">Next set of %1$s</string>
 </resources>

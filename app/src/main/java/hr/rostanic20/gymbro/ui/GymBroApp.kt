@@ -32,6 +32,7 @@ import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.navigation.AppDestination
 import hr.rostanic20.gymbro.navigation.AppNavigator
 import hr.rostanic20.gymbro.navigation.rememberAppNavigator
+import hr.rostanic20.gymbro.ui.session.SessionScreen
 import hr.rostanic20.gymbro.ui.settings.SettingsScreen
 import hr.rostanic20.gymbro.ui.today.TodayScreen
 import hr.rostanic20.gymbro.ui.train.TrainScreen
@@ -104,7 +105,14 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
                 SettingsScreen()
             }
             entry<AppDestination.Workout> { destination ->
-                WorkoutScreen(dayId = destination.dayId, onBack = { navigator.goBack() })
+                WorkoutScreen(
+                    dayId = destination.dayId,
+                    onBack = { navigator.goBack() },
+                    onOpenSession = { navigator.navigate(AppDestination.Session(it)) },
+                )
+            }
+            entry<AppDestination.Session> { destination ->
+                SessionScreen(sessionId = destination.sessionId, onClose = { navigator.goBack() })
             }
         },
     )

@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,21 +39,37 @@ import org.koin.core.parameter.parametersOf
 fun WorkoutScreen(
     dayId: Long,
     onBack: () -> Unit,
+    onOpenSession: (sessionId: Long) -> Unit,
     viewModel: WorkoutViewModel = koinViewModel(parameters = { parametersOf(dayId) }),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            is WorkoutEvent.OpenSession -> onOpenSession(event.sessionId)
+        }
+    }
     state?.let {
-        WorkoutContent(state = it, onBack = onBack, onSaveLoads = viewModel::updateLoadSettings)
+        WorkoutContent(
+            state = it,
+            dayId = dayId,
+            onBack = onBack,
+            onStartSession = viewModel::startSession,
+            onOpenSession = onOpenSession,
+            onSaveLoads = viewModel::updateLoadSettings,
+        )
     }
 }
 
 @Composable
 private fun WorkoutContent(
     state: WorkoutUiState,
+    dayId: Long,
     onBack: () -> Unit,
+    onStartSession: () -> Unit,
+    onOpenSession: (sessionId: Long) -> Unit,
     onSaveLoads: (exerciseId: Long, settings: LoadSettings) -> Unit,
 ) {
     val spacing = LocalSpacing.current
@@ -83,6 +101,14 @@ private fun WorkoutContent(
             contentPadding = PaddingValues(start = spacing.s16, end = spacing.s16, bottom = spacing.s16),
             verticalArrangement = Arrangement.spacedBy(spacing.s16),
         ) {
+            item {
+                SessionButtons(
+                    state = state,
+                    dayId = dayId,
+                    onStart = onStartSession,
+                    onOpenSession = onOpenSession,
+                )
+            }
             val week = state.week
             if (week != null && showsWeekBanner(week)) {
                 item { WeekBanner(week = week) }
@@ -108,4 +134,47 @@ private fun WorkoutContent(
         onDismiss = { editingExerciseId = null },
         onSave = onSaveLoads,
     )
+}
+
+@Composable
+private fun SessionButtons(
+    state: WorkoutUiState,
+    dayId: Long,
+    onStart: () -> Unit,
+    onOpenSession: (sessionId: Long) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    val active = state.activeSession
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(spacing.s8),
+    ) {
+        when {
+            active != null && active.dayId == dayId ->
+                Button(onClick = { onOpenSession(active.id) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.continue_workout))
+                }
+            active != null -> {
+                Text(
+                    text = stringResource(R.string.finish_other_first, state.activeSessionDayName.orEmpty()),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedButton(onClick = { onOpenSession(active.id) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.open_other_session, state.activeSessionDayName.orEmpty()))
+                }
+            }
+            else -> {
+                Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.start_workout))
+                }
+                if (state.loggedToday) {
+                    Text(
+                        text = stringResource(R.string.logged_today),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
 }

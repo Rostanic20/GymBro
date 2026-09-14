@@ -1,0 +1,95 @@
+CREATE TABLE workout_session (
+    id             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    day_id         INTEGER NOT NULL REFERENCES workout_day(id),
+    date_epoch_day INTEGER NOT NULL,
+    started_at     INTEGER NOT NULL,
+    finished_at    INTEGER,
+    is_deload      INTEGER NOT NULL DEFAULT 0,
+    note           TEXT,
+    rest_ends_at   INTEGER
+);
+
+CREATE TABLE set_entry (
+    id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    session_id    INTEGER NOT NULL REFERENCES workout_session(id),
+    exercise_id   INTEGER NOT NULL REFERENCES exercise(id),
+    slot_position INTEGER NOT NULL,
+    load_kg       REAL,
+    reps          INTEGER NOT NULL,
+    rir           INTEGER,
+    logged_at     INTEGER NOT NULL
+);
+
+CREATE INDEX set_entry_session ON set_entry(session_id);
+
+CREATE INDEX set_entry_exercise ON set_entry(exercise_id);
+
+insertSession:
+INSERT INTO workout_session(day_id, date_epoch_day, started_at, is_deload) VALUES (?, ?, ?, ?);
+
+insertSet:
+INSERT INTO set_entry(session_id, exercise_id, slot_position, load_kg, reps, rir, logged_at) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+selectActive:
+SELECT * FROM workout_session WHERE finished_at IS NULL ORDER BY started_at DESC LIMIT 1;
+
+selectById:
+SELECT * FROM workout_session WHERE id = ?;
+
+selectOnDate:
+SELECT * FROM workout_session WHERE date_epoch_day = ? ORDER BY started_at;
+
+finish:
+UPDATE workout_session SET finished_at = :finishedAt, rest_ends_at = NULL WHERE id = :id;
+
+updateNote:
+UPDATE workout_session SET note = :note WHERE id = :id;
+
+updateRestEndsAt:
+UPDATE workout_session SET rest_ends_at = :restEndsAt WHERE id = :id;
+
+deleteSession:
+DELETE FROM workout_session WHERE id = ?;
+
+updateSet:
+UPDATE set_entry SET load_kg = :loadKg, reps = :reps, rir = :rir WHERE id = :id;
+
+deleteSet:
+DELETE FROM set_entry WHERE id = ?;
+
+deleteSetsForSession:
+DELETE FROM set_entry WHERE session_id = ?;
+
+selectSetsForSession:
+SELECT * FROM set_entry WHERE session_id = ? ORDER BY id;
+
+selectLastSessionIdWithExercise:
+SELECT workout_session.id
+FROM workout_session
+INNER JOIN set_entry ON set_entry.session_id = workout_session.id
+WHERE set_entry.exercise_id = :exerciseId
+  AND workout_session.finished_at IS NOT NULL
+  AND workout_session.is_deload = 0
+  AND workout_session.id != :excludedSessionId
+ORDER BY workout_session.started_at DESC
+LIMIT 1;
+
+selectSetsForSessionAndExercise:
+SELECT * FROM set_entry WHERE session_id = ? AND exercise_id = ? ORDER BY id;
+
+selectFirstSetsForExercise:
+SELECT set_entry.load_kg, set_entry.reps
+FROM set_entry
+INNER JOIN workout_session ON workout_session.id = set_entry.session_id
+WHERE set_entry.exercise_id = :exerciseId
+  AND workout_session.finished_at IS NOT NULL
+  AND workout_session.is_deload = 0
+  AND set_entry.id = (
+      SELECT MIN(first.id) FROM set_entry AS first
+      WHERE first.session_id = set_entry.session_id AND first.exercise_id = set_entry.exercise_id
+  )
+ORDER BY workout_session.started_at DESC
+LIMIT :limit;

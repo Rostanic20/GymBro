@@ -1,11 +1,11 @@
 package hr.rostanic20.gymbro.ui.workout
 
 import hr.rostanic20.gymbro.domain.model.LoadType
+import hr.rostanic20.gymbro.ui.common.MAX_LOAD_KG
 import hr.rostanic20.gymbro.ui.common.parseKg
 
 data class LoadSettings(val startLoadKg: Double?, val incrementKg: Double)
 
-private const val MAX_LOAD_KG = 500.0
 private const val MAX_INCREMENT_KG = 50.0
 
 fun isStartLoadValid(loadType: LoadType, text: String): Boolean =

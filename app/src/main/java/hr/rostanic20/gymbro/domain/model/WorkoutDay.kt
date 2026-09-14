@@ -13,6 +13,7 @@ data class WorkoutDay(
 }
 
 data class PlannedExercise(
+    val position: Int,
     val exercise: Exercise,
     val sets: Int,
     val reps: IntRange,
@@ -34,8 +35,7 @@ data class Exercise(
 )
 
 data class Alternative(
-    val exerciseId: Long,
-    val name: String,
+    val exercise: Exercise,
     val note: String?,
 )
 
