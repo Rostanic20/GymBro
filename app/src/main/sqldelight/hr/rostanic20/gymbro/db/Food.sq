@@ -1,0 +1,32 @@
+CREATE TABLE food (
+    id               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name             TEXT    NOT NULL,
+    kcal_per_100g    REAL    NOT NULL,
+    protein_per_100g REAL    NOT NULL,
+    carbs_per_100g   REAL    NOT NULL,
+    fat_per_100g     REAL    NOT NULL,
+    unit_name        TEXT,
+    unit_grams       REAL
+);
+
+INSERT INTO food(name, kcal_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, unit_name, unit_grams) VALUES
+    ('Whole milk', 64, 3.3, 4.7, 3.6, NULL, NULL),
+    ('Oats', 379, 13.2, 67.7, 6.5, NULL, NULL),
+    ('Banana', 89, 1.1, 22.8, 0.3, 'banana', 120),
+    ('Whey protein', 400, 78, 8, 6, 'scoop', 25),
+    ('Peanut butter', 588, 25, 20, 50, NULL, NULL),
+    ('Skyr, plain', 63, 11, 4, 0.2, NULL, NULL),
+    ('Egg', 143, 12.6, 0.7, 9.5, 'egg', 55),
+    ('White bread', 265, 9, 49, 3.2, 'slice', 30),
+    ('Honey', 304, 0.3, 82, 0, 'tsp', 7),
+    ('Walnuts', 654, 15.2, 13.7, 65.2, NULL, NULL),
+    ('Dates, dried', 282, 2.5, 75, 0.4, NULL, NULL),
+    ('Olive oil', 884, 0, 0, 100, 'tbsp', 13.5),
+    ('White rice, cooked', 130, 2.7, 28.2, 0.3, NULL, NULL),
+    ('Potato, boiled, peeled', 87, 1.9, 20.1, 0.1, NULL, NULL),
+    ('Tuna, canned in water', 116, 25.5, 0, 0.8, 'tin', 112),
+    ('Ground beef, cooked', 250, 26, 0, 15.5, NULL, NULL),
+    ('Orange juice', 45, 0.7, 10.4, 0.2, NULL, NULL);
+
+selectAll:
+SELECT * FROM food ORDER BY name COLLATE NOCASE;

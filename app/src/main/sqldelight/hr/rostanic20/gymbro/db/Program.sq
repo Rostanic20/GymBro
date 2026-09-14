@@ -1,0 +1,159 @@
+CREATE TABLE exercise (
+    id            INTEGER NOT NULL PRIMARY KEY,
+    name          TEXT    NOT NULL UNIQUE,
+    load_type     TEXT    NOT NULL,
+    progression   TEXT    NOT NULL,
+    start_load_kg REAL,
+    increment_kg  REAL,
+    bar_weight_kg REAL
+);
+
+CREATE TABLE exercise_alternative (
+    exercise_id    INTEGER NOT NULL REFERENCES exercise(id),
+    alternative_id INTEGER NOT NULL REFERENCES exercise(id),
+    note           TEXT,
+    PRIMARY KEY (exercise_id, alternative_id)
+);
+
+CREATE TABLE workout_day (
+    id              INTEGER NOT NULL PRIMARY KEY,
+    name            TEXT    NOT NULL,
+    emphasis        TEXT    NOT NULL,
+    iso_day_of_week INTEGER NOT NULL UNIQUE
+);
+
+CREATE TABLE day_exercise (
+    day_id           INTEGER NOT NULL REFERENCES workout_day(id),
+    position         INTEGER NOT NULL,
+    exercise_id      INTEGER NOT NULL REFERENCES exercise(id),
+    sets             INTEGER NOT NULL,
+    rep_min          INTEGER NOT NULL,
+    rep_max          INTEGER NOT NULL,
+    rir_min          INTEGER NOT NULL,
+    rir_max          INTEGER NOT NULL,
+    rest_min_seconds INTEGER NOT NULL,
+    rest_max_seconds INTEGER NOT NULL,
+    is_top           INTEGER NOT NULL DEFAULT 0,
+    note             TEXT,
+    PRIMARY KEY (day_id, position)
+);
+
+INSERT INTO exercise(id, name, load_type, progression, start_load_kg, increment_kg, bar_weight_kg) VALUES
+    (1, 'Barbell bench press', 'WEIGHT', 'DOUBLE', 40, 2.5, 20),
+    (2, 'Chest-supported row', 'WEIGHT', 'DOUBLE', 30, 2.5, NULL),
+    (3, 'Lat pulldown, neutral grip', 'WEIGHT', 'DOUBLE', 40, 2.5, NULL),
+    (4, 'Seated DB shoulder press', 'WEIGHT', 'DOUBLE', 10, 2, NULL),
+    (5, 'Cable lateral raise', 'WEIGHT', 'REPS_FIRST', NULL, 2.5, NULL),
+    (6, 'EZ-bar curl', 'WEIGHT', 'DOUBLE', 17.5, 2.5, NULL),
+    (7, 'Cable triceps pushdown', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (8, 'Back squat', 'WEIGHT', 'DOUBLE', 40, 5, 20),
+    (9, 'Leg press', 'WEIGHT', 'DOUBLE', NULL, 5, NULL),
+    (10, 'Seated leg curl', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (11, 'Standing calf raise', 'WEIGHT', 'DOUBLE', NULL, 5, NULL),
+    (12, 'Cable crunch', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (13, 'Pull-up', 'ASSISTANCE', 'DOUBLE', NULL, 2.5, NULL),
+    (14, 'Incline DB press, 30°', 'WEIGHT', 'DOUBLE', 14, 2, NULL),
+    (15, 'Seated cable row', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (16, 'Pec deck', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (17, 'DB lateral raise', 'WEIGHT', 'REPS_FIRST', 5, 1, NULL),
+    (18, 'Incline DB curl', 'WEIGHT', 'DOUBLE', NULL, 1, NULL),
+    (19, 'Overhead cable extension', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (20, 'Romanian deadlift', 'WEIGHT', 'DOUBLE', 40, 5, 20),
+    (21, 'Hack squat', 'WEIGHT', 'DOUBLE', NULL, 5, NULL),
+    (22, 'Leg extension', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (23, 'Lying leg curl', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (24, 'Seated calf raise', 'WEIGHT', 'DOUBLE', NULL, 5, NULL),
+    (25, 'Hanging leg raise', 'BODYWEIGHT', 'DOUBLE', NULL, NULL, NULL),
+    (26, 'Bulgarian split squat', 'WEIGHT', 'DOUBLE', NULL, 2, NULL),
+    (27, 'Cable fly', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (28, 'Dumbbell fly', 'WEIGHT', 'DOUBLE', NULL, 2, NULL),
+    (29, 'Barbell row, chest on incline bench', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (30, 'Band-assisted pull-up', 'BODYWEIGHT', 'DOUBLE', NULL, NULL, NULL),
+    (31, 'Lat pulldown, wide grip', 'WEIGHT', 'DOUBLE', NULL, 2.5, NULL),
+    (32, 'Goblet squat', 'WEIGHT', 'DOUBLE', NULL, 2, NULL);
+
+INSERT INTO exercise_alternative(exercise_id, alternative_id, note) VALUES
+    (2, 29, 'No cost, as long as the torso stays supported.'),
+    (5, 17, 'Less tension at the bottom; add two sets to compensate.'),
+    (9, 32, NULL),
+    (10, 23, 'The one swap that costs you: seated grows the hamstring more. Add an RDL set.'),
+    (13, 30, 'No cost at your stage.'),
+    (13, 31, 'No cost at your stage.'),
+    (16, 27, 'No cost.'),
+    (16, 28, 'Loses tension at the top but keeps the stretch, which is the part that matters.'),
+    (21, 26, 'No cost. Weight is per hand, reps per leg.');
+
+INSERT INTO workout_day(id, name, emphasis, iso_day_of_week) VALUES
+    (1, 'Upper A', 'press emphasis', 1),
+    (2, 'Lower A', 'squat emphasis', 2),
+    (3, 'Upper B', 'pull emphasis', 3),
+    (4, 'Lower B', 'hinge emphasis', 4);
+
+INSERT INTO day_exercise(day_id, position, exercise_id, sets, rep_min, rep_max, rir_min, rir_max, rest_min_seconds, rest_max_seconds, is_top, note) VALUES
+    (1, 1, 1, 3, 5, 8, 2, 2, 180, 180, 1, 'Your main strength lift. Log it every week.'),
+    (1, 2, 2, 3, 8, 10, 1, 2, 120, 120, 0, 'Chest pad removes lower-back fatigue before leg day.'),
+    (1, 3, 3, 3, 10, 12, 1, 1, 120, 120, 0, 'Let the shoulders rise fully at the top.'),
+    (1, 4, 4, 2, 8, 12, 1, 1, 120, 120, 0, NULL),
+    (1, 5, 5, 3, 12, 20, 0, 1, 75, 75, 0, 'Cable keeps tension at the bottom; dumbbells don''t.'),
+    (1, 6, 6, 2, 8, 12, 0, 1, 75, 75, 0, 'Superset with the pushdown.'),
+    (1, 7, 7, 2, 10, 15, 0, 1, 75, 75, 0, 'Superset with the curl.'),
+    (2, 1, 8, 3, 5, 8, 2, 2, 180, 180, 1, 'Depth before load, every session, no exceptions.'),
+    (2, 2, 9, 3, 10, 15, 1, 1, 120, 180, 0, 'Quad volume without re-loading the spine.'),
+    (2, 3, 10, 3, 10, 15, 0, 1, 120, 120, 0, 'Seated, not lying: hip flexion holds the hamstring long.'),
+    (2, 4, 11, 3, 8, 12, 0, 1, 90, 90, 0, 'Two-second pause at the stretch.'),
+    (2, 5, 12, 2, 10, 15, 1, 1, 60, 60, 0, 'Loaded and progressed like everything else.'),
+    (3, 1, 13, 3, 6, 10, 1, 2, 180, 180, 1, 'Assisted until 3×8 bodyweight, then add a belt.'),
+    (3, 2, 14, 3, 8, 12, 1, 2, 120, 180, 0, NULL),
+    (3, 3, 15, 3, 10, 12, 1, 1, 120, 120, 0, NULL),
+    (3, 4, 16, 2, 12, 15, 0, 1, 90, 90, 0, 'The only chest work that loads the stretched position.'),
+    (3, 5, 17, 3, 12, 20, 0, 1, 75, 75, 0, 'Add reps to 20 before adding weight.'),
+    (3, 6, 18, 2, 10, 15, 0, 1, 90, 90, 0, 'Arm behind the torso puts the long head on stretch.'),
+    (3, 7, 19, 2, 10, 15, 0, 1, 90, 90, 0, 'Overhead beats pushdowns for triceps size.'),
+    (4, 1, 20, 3, 6, 10, 2, 2, 180, 180, 1, 'Stop where the stretch stops, not where the plates land.'),
+    (4, 2, 21, 3, 8, 12, 1, 1, 120, 180, 0, NULL),
+    (4, 3, 22, 3, 12, 15, 0, 1, 90, 90, 0, 'Hits rectus femoris, which no squat variation does.'),
+    (4, 4, 23, 2, 10, 15, 0, 1, 90, 90, 0, NULL),
+    (4, 5, 24, 3, 12, 20, 0, 1, 90, 90, 0, 'Bent knee targets soleus; standing targets gastroc.'),
+    (4, 6, 25, 2, 8, 12, 1, 1, 60, 60, 0, NULL);
+
+selectProgram:
+SELECT
+    workout_day.id AS day_id,
+    workout_day.name AS day_name,
+    workout_day.emphasis,
+    workout_day.iso_day_of_week,
+    day_exercise.sets,
+    day_exercise.rep_min,
+    day_exercise.rep_max,
+    day_exercise.rir_min,
+    day_exercise.rir_max,
+    day_exercise.rest_min_seconds,
+    day_exercise.rest_max_seconds,
+    day_exercise.is_top,
+    day_exercise.note,
+    exercise.id AS exercise_id,
+    exercise.name AS exercise_name,
+    exercise.load_type,
+    exercise.progression,
+    exercise.start_load_kg,
+    exercise.increment_kg,
+    exercise.bar_weight_kg
+FROM workout_day
+INNER JOIN day_exercise ON day_exercise.day_id = workout_day.id
+INNER JOIN exercise ON exercise.id = day_exercise.exercise_id
+ORDER BY workout_day.iso_day_of_week, day_exercise.position;
+
+selectAlternatives:
+SELECT
+    exercise_alternative.exercise_id,
+    alternative.id AS alternative_id,
+    alternative.name AS alternative_name,
+    exercise_alternative.note
+FROM exercise_alternative
+INNER JOIN exercise AS alternative ON alternative.id = exercise_alternative.alternative_id
+ORDER BY exercise_alternative.exercise_id, alternative.name;
+
+updateLoadSettings:
+UPDATE exercise
+SET start_load_kg = :startLoadKg, increment_kg = :incrementKg
+WHERE id = :id;
