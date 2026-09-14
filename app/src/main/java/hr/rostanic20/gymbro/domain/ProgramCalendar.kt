@@ -10,17 +10,32 @@ import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 
 const val MAINTENANCE_WEEKS = 2
+const val DELOAD_EVERY_WEEKS = 8
 
+private const val CALIBRATION_WEEKS = 1
+private const val DAYS_PER_WEEK = 7L
 private const val KCAL_PER_G_PROTEIN = 4
 private const val KCAL_PER_G_CARBS = 4
 private const val KCAL_PER_G_FAT = 9
 
-fun programWeek(start: LocalDate, date: LocalDate): Int? {
-    val startMonday = start.mondayOfWeek()
-    val dateMonday = date.mondayOfWeek()
-    if (dateMonday < startMonday) return null
-    return ChronoUnit.WEEKS.between(startMonday, dateMonday).toInt() + 1
+fun programStartFor(date: LocalDate): LocalDate = when (date.dayOfWeek) {
+    DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
+        date.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+    else -> date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 }
+
+fun programWeek(start: LocalDate, date: LocalDate): Int? {
+    val firstMonday = programStartFor(start)
+    if (date < firstMonday) return null
+    return (ChronoUnit.DAYS.between(firstMonday, date) / DAYS_PER_WEEK).toInt() + 1
+}
+
+fun isCalibrationWeek(week: Int?): Boolean = week == null || week <= CALIBRATION_WEEKS
+
+fun isDeloadWeek(week: Int?): Boolean = week != null && week % DELOAD_EVERY_WEEKS == 0
+
+fun WorkoutDay.forWeek(week: Int?): WorkoutDay =
+    if (!isDeloadWeek(week)) this else copy(exercises = exercises.map { it.copy(sets = (it.sets + 1) / 2) })
 
 fun Profile.nutritionTargets(week: Int?): NutritionTargets {
     val phase = if (week != null && week > MAINTENANCE_WEEKS) NutritionPhase.SURPLUS else NutritionPhase.MAINTENANCE
@@ -40,6 +55,3 @@ fun Profile.nutritionTargets(week: Int?): NutritionTargets {
 
 fun List<WorkoutDay>.forDate(date: LocalDate): WorkoutDay? =
     firstOrNull { it.dayOfWeek == date.dayOfWeek }
-
-private fun LocalDate.mondayOfWeek(): LocalDate =
-    with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
