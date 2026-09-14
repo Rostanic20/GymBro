@@ -9,4 +9,5 @@ interface ProfileRepository {
     suspend fun setProgramStart(date: LocalDate?)
     suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int)
     suspend fun setMealReminders(enabled: Boolean)
+    suspend fun adjustCalories(deltaKcal: Int, date: LocalDate)
 }

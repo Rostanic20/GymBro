@@ -12,6 +12,9 @@ sealed interface AppDestination : NavKey {
     data object Train : AppDestination
 
     @Serializable
+    data object Body : AppDestination
+
+    @Serializable
     data object Settings : AppDestination
 
     @Serializable
@@ -33,5 +36,6 @@ sealed interface AppDestination : NavKey {
 val TopLevelDestinations: List<AppDestination> = listOf(
     AppDestination.Today,
     AppDestination.Train,
+    AppDestination.Body,
     AppDestination.Settings,
 )

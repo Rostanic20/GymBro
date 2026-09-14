@@ -11,6 +11,7 @@ interface ProfileLocalDataSource {
     suspend fun setProgramStart(epochDay: Long?)
     suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int)
     suspend fun setMealReminders(enabled: Boolean)
+    suspend fun adjustCalories(deltaKcal: Int, epochDay: Long, allowed: IntRange)
 }
 
 class ProfileLocalDataSourceImpl(
@@ -36,4 +37,18 @@ class ProfileLocalDataSourceImpl(
     override suspend fun setMealReminders(enabled: Boolean): Unit = withContext(writeContext) {
         ds.updateData { it.copy(mealRemindersEnabled = enabled) }
     }
+
+    override suspend fun adjustCalories(deltaKcal: Int, epochDay: Long, allowed: IntRange): Unit =
+        withContext(writeContext) {
+            ds.updateData {
+                if (it.lastCalorieAdjustmentEpochDay == epochDay) {
+                    it
+                } else {
+                    it.copy(
+                        kcalAdjustment = (it.kcalAdjustment + deltaKcal).coerceIn(allowed),
+                        lastCalorieAdjustmentEpochDay = epochDay,
+                    )
+                }
+            }
+        }
 }

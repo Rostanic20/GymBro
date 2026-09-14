@@ -1,0 +1,12 @@
+CREATE TABLE waist (
+    date_epoch_day INTEGER NOT NULL PRIMARY KEY,
+    waist_cm       REAL    NOT NULL
+);
+
+CREATE TABLE progress_photo (
+    id             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    date_epoch_day INTEGER NOT NULL,
+    pose           TEXT    NOT NULL,
+    file_name      TEXT    NOT NULL UNIQUE,
+    taken_at       INTEGER NOT NULL
+);

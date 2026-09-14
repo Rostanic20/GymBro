@@ -6,13 +6,17 @@ import hr.rostanic20.gymbro.core.DateProvider
 import hr.rostanic20.gymbro.core.DefaultDispatcherProvider
 import hr.rostanic20.gymbro.core.DispatcherProvider
 import hr.rostanic20.gymbro.core.MealReminderScheduler
+import hr.rostanic20.gymbro.core.PhotoStorage
 import hr.rostanic20.gymbro.core.RestTimer
 import hr.rostanic20.gymbro.core.SystemDateProvider
 import hr.rostanic20.gymbro.core.WallClock
+import hr.rostanic20.gymbro.data.local.AndroidPhotoStorage
 import hr.rostanic20.gymbro.data.local.BodyLocalDataSource
 import hr.rostanic20.gymbro.data.local.BodyLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.FoodLocalDataSource
 import hr.rostanic20.gymbro.data.local.FoodLocalDataSourceImpl
+import hr.rostanic20.gymbro.data.local.PhotoLocalDataSource
+import hr.rostanic20.gymbro.data.local.PhotoLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.ProfileLocalDataSource
 import hr.rostanic20.gymbro.data.local.ProfileLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.ProgramLocalDataSource
@@ -21,17 +25,20 @@ import hr.rostanic20.gymbro.data.local.SessionLocalDataSource
 import hr.rostanic20.gymbro.data.local.SessionLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.repository.BodyRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.FoodRepositoryImpl
+import hr.rostanic20.gymbro.data.repository.PhotoRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.ProfileRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.ProgramRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.SessionRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
 import hr.rostanic20.gymbro.domain.repository.BodyRepository
 import hr.rostanic20.gymbro.domain.repository.FoodRepository
+import hr.rostanic20.gymbro.domain.repository.PhotoRepository
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
 import hr.rostanic20.gymbro.domain.repository.SessionRepository
 import hr.rostanic20.gymbro.timer.AlarmMealReminderScheduler
 import hr.rostanic20.gymbro.timer.AlarmRestTimer
+import hr.rostanic20.gymbro.ui.body.BodyViewModel
 import hr.rostanic20.gymbro.ui.foods.FoodEditViewModel
 import hr.rostanic20.gymbro.ui.foods.FoodsViewModel
 import hr.rostanic20.gymbro.ui.meal.MealViewModel
@@ -62,6 +69,7 @@ val appModule = module {
     }
     single<RestTimer> { AlarmRestTimer(androidApplication()) }
     single<MealReminderScheduler> { AlarmMealReminderScheduler(androidApplication()) }
+    single<PhotoStorage> { AndroidPhotoStorage(androidApplication(), get()) }
 
     single { SqlDriverFactory.createAndroidSqlite(androidApplication()) } bind SqlDriver::class
     single { AppDb(get()) }
@@ -71,14 +79,17 @@ val appModule = module {
     singleOf(::SessionLocalDataSourceImpl) bind SessionLocalDataSource::class
     singleOf(::FoodLocalDataSourceImpl) bind FoodLocalDataSource::class
     singleOf(::BodyLocalDataSourceImpl) bind BodyLocalDataSource::class
+    singleOf(::PhotoLocalDataSourceImpl) bind PhotoLocalDataSource::class
     singleOf(::ProgramRepositoryImpl) bind ProgramRepository::class
     singleOf(::ProfileRepositoryImpl) bind ProfileRepository::class
     singleOf(::SessionRepositoryImpl) bind SessionRepository::class
     singleOf(::FoodRepositoryImpl) bind FoodRepository::class
     singleOf(::BodyRepositoryImpl) bind BodyRepository::class
+    singleOf(::PhotoRepositoryImpl) bind PhotoRepository::class
 
     viewModelOf(::TodayViewModel)
     viewModelOf(::TrainViewModel)
+    viewModelOf(::BodyViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::FoodsViewModel)
     viewModel { (dayId: Long) -> WorkoutViewModel(dayId, get(), get(), get(), get(), get()) }
