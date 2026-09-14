@@ -34,3 +34,9 @@ data class TopSet(
     val loadKg: Double?,
     val reps: Int,
 )
+
+data class TopSetPoint(
+    val date: LocalDate,
+    val loadKg: Double?,
+    val reps: Int,
+)

@@ -82,12 +82,17 @@ fun SettingsScreen(
                 setMealReminders = viewModel::setMealReminders,
                 openFoods = onOpenFoods,
             ),
+            backupCard = { BackupCard() },
         )
     }
 }
 
 @Composable
-internal fun SettingsContent(profile: Profile, actions: SettingsActions) {
+internal fun SettingsContent(
+    profile: Profile,
+    actions: SettingsActions,
+    backupCard: @Composable () -> Unit = {},
+) {
     val spacing = LocalSpacing.current
     Column(
         modifier = Modifier
@@ -107,6 +112,7 @@ internal fun SettingsContent(profile: Profile, actions: SettingsActions) {
             onOpenFoods = actions.openFoods,
         )
         TargetsCard(profile = profile, onSave = actions.saveTargets)
+        backupCard()
     }
 }
 

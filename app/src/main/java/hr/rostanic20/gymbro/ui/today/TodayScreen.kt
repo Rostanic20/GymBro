@@ -77,6 +77,7 @@ fun TodayScreen(
             onOpenWorkout = onOpenWorkout,
             onOpenMeal = onOpenMeal,
             onSaveWeight = viewModel::saveWeight,
+            healthCard = { HealthCard() },
         )
     }
 }
@@ -88,6 +89,7 @@ internal fun TodayContent(
     onOpenWorkout: (dayId: Long) -> Unit,
     onOpenMeal: (epochDay: Long, slot: Int) -> Unit,
     onSaveWeight: (Double) -> Unit,
+    healthCard: @Composable () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     val week = state.week
@@ -114,6 +116,7 @@ internal fun TodayContent(
             WorkoutSummaryCard(workout = state.workout, status = state.workoutStatus, onOpenWorkout = onOpenWorkout)
         }
         item { WeightCard(state = state, onSave = onSaveWeight) }
+        item { healthCard() }
     }
 }
 

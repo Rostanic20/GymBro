@@ -8,7 +8,7 @@ import hr.rostanic20.gymbro.data.local.UserProfileSerializer
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 
-private const val PROFILE_FILE = "user_profile.json"
+const val PROFILE_FILE = "user_profile.json"
 
 val dataStoreModule = module {
     single {

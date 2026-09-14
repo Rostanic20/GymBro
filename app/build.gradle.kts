@@ -72,6 +72,8 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.datastore)
+    implementation(libs.androidx.health.connect.client)
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)

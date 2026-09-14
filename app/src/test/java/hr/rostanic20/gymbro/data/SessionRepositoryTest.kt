@@ -7,6 +7,7 @@ import hr.rostanic20.gymbro.data.repository.SessionRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
+import hr.rostanic20.gymbro.domain.model.TopSetPoint
 import hr.rostanic20.gymbro.util.TestDispatcherProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -111,6 +112,23 @@ class SessionRepositoryTest {
         assertEquals(
             listOf(TopSet(60.0, 5), TopSet(60.0, 6)),
             repository.recentTopSets(bench, limit = 2),
+        )
+    }
+
+    @Test
+    fun `chart history keeps deloads, skips unfinished sessions and runs oldest to newest`() = runTest {
+        val repository = repository()
+        listOf(false, true, false).forEachIndexed { index, deload ->
+            val id = repository.startSession(1, monday.plusWeeks(index.toLong()), deload, nowMillis = index * 1_000L)
+            repository.logBench(id, 60.0 + index, 8 - index)
+            repository.finishSession(id, index * 1_000L + 500)
+        }
+        val open = repository.startSession(1, monday.plusWeeks(3), isDeload = false, nowMillis = 3_000)
+        repository.logBench(open, 70.0, 3)
+
+        assertEquals(
+            listOf(TopSetPoint(monday.plusWeeks(1), 61.0, 7), TopSetPoint(monday.plusWeeks(2), 62.0, 6)),
+            repository.topSetHistory(bench, limit = 2).first(),
         )
     }
 

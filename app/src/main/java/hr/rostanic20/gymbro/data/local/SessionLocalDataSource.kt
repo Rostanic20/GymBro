@@ -7,6 +7,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import hr.rostanic20.gymbro.core.DispatcherProvider
 import hr.rostanic20.gymbro.data.SessionEntity
 import hr.rostanic20.gymbro.data.SetEntity
+import hr.rostanic20.gymbro.data.TopSetHistoryEntity
 import hr.rostanic20.gymbro.data.TopSetRowEntity
 import hr.rostanic20.gymbro.db.AppDb
 import kotlinx.coroutines.NonCancellable
@@ -19,6 +20,7 @@ interface SessionLocalDataSource {
     fun byId(id: Long): Flow<SessionEntity?>
     fun onDate(epochDay: Long): Flow<List<SessionEntity>>
     fun sets(sessionId: Long): Flow<List<SetEntity>>
+    fun topSetHistory(exerciseId: Long, limit: Long): Flow<List<TopSetHistoryEntity>>
     suspend fun lastSets(exerciseId: Long, excludedSessionId: Long): List<SetEntity>
     suspend fun firstSets(exerciseId: Long, limit: Long): List<TopSetRowEntity>
     suspend fun insertSession(dayId: Long, epochDay: Long, startedAt: Long, isDeload: Boolean): Long
@@ -58,6 +60,9 @@ class SessionLocalDataSourceImpl(
 
     override fun sets(sessionId: Long): Flow<List<SetEntity>> =
         query.selectSetsForSession(sessionId).asFlow().map { it.awaitAsList() }
+
+    override fun topSetHistory(exerciseId: Long, limit: Long): Flow<List<TopSetHistoryEntity>> =
+        query.selectTopSetHistory(exerciseId, limit).asFlow().map { it.awaitAsList() }
 
     override suspend fun lastSets(exerciseId: Long, excludedSessionId: Long): List<SetEntity> =
         withContext(dispatchers.io) {

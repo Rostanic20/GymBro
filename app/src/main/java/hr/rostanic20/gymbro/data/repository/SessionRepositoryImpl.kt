@@ -6,6 +6,7 @@ import hr.rostanic20.gymbro.data.toDomain
 import hr.rostanic20.gymbro.domain.model.LoggedSet
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
+import hr.rostanic20.gymbro.domain.model.TopSetPoint
 import hr.rostanic20.gymbro.domain.model.WorkoutSession
 import hr.rostanic20.gymbro.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,14 @@ class SessionRepositoryImpl(
 
     override fun sets(sessionId: Long): Flow<List<LoggedSet>> =
         local.sets(sessionId).map { rows -> rows.map { it.toDomain() } }
+            .distinctUntilChanged()
+            .flowOn(dispatchers.io)
+
+    override fun topSetHistory(exerciseId: Long, limit: Int): Flow<List<TopSetPoint>> =
+        local.topSetHistory(exerciseId, limit.toLong())
+            .map { rows ->
+                rows.reversed().map { TopSetPoint(LocalDate.ofEpochDay(it.date_epoch_day), it.load_kg, it.reps.toInt()) }
+            }
             .distinctUntilChanged()
             .flowOn(dispatchers.io)
 

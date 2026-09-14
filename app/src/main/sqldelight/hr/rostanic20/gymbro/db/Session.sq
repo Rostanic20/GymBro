@@ -93,3 +93,16 @@ WHERE set_entry.exercise_id = :exerciseId
   )
 ORDER BY workout_session.started_at DESC
 LIMIT :limit;
+
+selectTopSetHistory:
+SELECT workout_session.date_epoch_day, set_entry.load_kg, set_entry.reps
+FROM set_entry
+INNER JOIN workout_session ON workout_session.id = set_entry.session_id
+WHERE set_entry.exercise_id = :exerciseId
+  AND workout_session.finished_at IS NOT NULL
+  AND set_entry.id = (
+      SELECT MIN(first.id) FROM set_entry AS first
+      WHERE first.session_id = set_entry.session_id AND first.exercise_id = set_entry.exercise_id
+  )
+ORDER BY workout_session.started_at DESC
+LIMIT :limit;

@@ -39,6 +39,7 @@ data class BodyUiState(
     val check: WeeklyCheck,
     val kcalAdjustment: Int,
     val recentWeights: List<BodyWeight>,
+    val weightTrend: List<BodyWeight>,
     val weekAverageKg: Double?,
     val weeklyChangeKg: Double?,
     val waistTodayCm: Double?,
@@ -48,6 +49,7 @@ data class BodyUiState(
 )
 
 private const val RECENT_WEIGHT_DAYS = 14L
+private val WEIGHT_TREND_DAYS = maxOf(84L, WEIGHT_CHECK_HISTORY_DAYS)
 private const val WAIST_HISTORY_DAYS = WAIST_WINDOW_DAYS * 2 + 14
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,7 +69,7 @@ class BodyViewModel(
         combine(
             profileRepository.profile(),
             dates.todayFlow(),
-            dates.todayFlow().flatMapLatest { bodyRepository.weights(it.minusDays(WEIGHT_CHECK_HISTORY_DAYS), it) },
+            dates.todayFlow().flatMapLatest { bodyRepository.weights(it.minusDays(WEIGHT_TREND_DAYS), it) },
             dates.todayFlow().flatMapLatest { bodyRepository.waists(it.minusDays(WAIST_HISTORY_DAYS), it) },
             photoRepository.photos(),
         ) { profile, today, weights, waists, photos ->
@@ -77,6 +79,7 @@ class BodyViewModel(
                 kcalAdjustment = profile.kcalAdjustment,
                 recentWeights = weights.filter { it.date > today.minusDays(RECENT_WEIGHT_DAYS) }
                     .sortedByDescending { it.date },
+                weightTrend = weights.sortedBy { it.date },
                 weekAverageKg = weights.averageForWeekEnding(today),
                 weeklyChangeKg = weights.weeklyChange(today),
                 waistTodayCm = waists.firstOrNull { it.date == today }?.waistCm,
