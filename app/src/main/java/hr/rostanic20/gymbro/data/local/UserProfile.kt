@@ -11,4 +11,5 @@ data class UserProfile(
     val proteinG: Int = 145,
     val fatG: Int = 75,
     val mealRemindersEnabled: Boolean = false,
+    val lastCalorieAdjustmentEpochDay: Long? = null,
 )

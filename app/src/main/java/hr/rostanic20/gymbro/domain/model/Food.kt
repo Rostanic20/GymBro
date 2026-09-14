@@ -59,11 +59,6 @@ data class FoodLogEntry(
     val nutrition: Nutrition,
 )
 
-data class BodyWeight(
-    val date: LocalDate,
-    val weightKg: Double,
-)
-
 enum class Meal(
     val slot: Int,
     val time: LocalTime,

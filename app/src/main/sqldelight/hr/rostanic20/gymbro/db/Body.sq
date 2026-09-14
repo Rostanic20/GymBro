@@ -3,6 +3,19 @@ CREATE TABLE body_weight (
     weight_kg      REAL    NOT NULL
 );
 
+CREATE TABLE waist (
+    date_epoch_day INTEGER NOT NULL PRIMARY KEY,
+    waist_cm       REAL    NOT NULL
+);
+
+CREATE TABLE progress_photo (
+    id             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    date_epoch_day INTEGER NOT NULL,
+    pose           TEXT    NOT NULL,
+    file_name      TEXT    NOT NULL UNIQUE,
+    taken_at       INTEGER NOT NULL
+);
+
 selectBetween:
 SELECT * FROM body_weight WHERE date_epoch_day BETWEEN ? AND ? ORDER BY date_epoch_day;
 
@@ -11,3 +24,18 @@ INSERT OR REPLACE INTO body_weight(date_epoch_day, weight_kg) VALUES (?, ?);
 
 deleteForDate:
 DELETE FROM body_weight WHERE date_epoch_day = ?;
+
+selectWaistBetween:
+SELECT * FROM waist WHERE date_epoch_day BETWEEN ? AND ? ORDER BY date_epoch_day;
+
+upsertWaist:
+INSERT OR REPLACE INTO waist(date_epoch_day, waist_cm) VALUES (?, ?);
+
+selectPhotos:
+SELECT * FROM progress_photo ORDER BY date_epoch_day DESC, taken_at DESC;
+
+insertPhoto:
+INSERT INTO progress_photo(date_epoch_day, pose, file_name, taken_at) VALUES (?, ?, ?, ?);
+
+deletePhoto:
+DELETE FROM progress_photo WHERE id = ?;

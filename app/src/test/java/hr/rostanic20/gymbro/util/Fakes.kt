@@ -4,6 +4,7 @@ import hr.rostanic20.gymbro.core.DateProvider
 import hr.rostanic20.gymbro.core.MealReminderScheduler
 import hr.rostanic20.gymbro.core.RestTimer
 import hr.rostanic20.gymbro.core.WallClock
+import hr.rostanic20.gymbro.domain.CALORIE_ADJUSTMENT_RANGE
 import hr.rostanic20.gymbro.domain.model.BodyWeight
 import hr.rostanic20.gymbro.domain.model.Food
 import hr.rostanic20.gymbro.domain.model.FoodDraft
@@ -11,15 +12,19 @@ import hr.rostanic20.gymbro.domain.model.FoodLogEntry
 import hr.rostanic20.gymbro.domain.model.LoggedSet
 import hr.rostanic20.gymbro.domain.model.Meal
 import hr.rostanic20.gymbro.domain.model.Nutrition
+import hr.rostanic20.gymbro.domain.model.PhotoPose
 import hr.rostanic20.gymbro.domain.model.Profile
+import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.domain.model.Recipe
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
+import hr.rostanic20.gymbro.domain.model.WaistMeasurement
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.domain.model.WorkoutSession
 import hr.rostanic20.gymbro.domain.nutritionFor
 import hr.rostanic20.gymbro.domain.repository.BodyRepository
 import hr.rostanic20.gymbro.domain.repository.FoodRepository
+import hr.rostanic20.gymbro.domain.repository.PhotoRepository
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
 import hr.rostanic20.gymbro.domain.repository.SessionRepository
@@ -65,6 +70,20 @@ class FakeProfileRepository(initial: Profile = defaultProfile) : ProfileReposito
     override suspend fun setMealReminders(enabled: Boolean) {
         failIf(failWrites)
         state.update { it.copy(mealRemindersEnabled = enabled) }
+    }
+
+    override suspend fun adjustCalories(deltaKcal: Int, date: LocalDate) {
+        failIf(failWrites)
+        state.update {
+            if (it.lastCalorieAdjustment == date) {
+                it
+            } else {
+                it.copy(
+                    kcalAdjustment = (it.kcalAdjustment + deltaKcal).coerceIn(CALORIE_ADJUSTMENT_RANGE),
+                    lastCalorieAdjustment = date,
+                )
+            }
+        }
     }
 }
 
@@ -239,20 +258,50 @@ class FakeFoodRepository(
 }
 
 class FakeBodyRepository : BodyRepository {
-    private val state = MutableStateFlow<List<BodyWeight>>(emptyList())
+    private val weightsState = MutableStateFlow<List<BodyWeight>>(emptyList())
+    private val waistsState = MutableStateFlow<List<WaistMeasurement>>(emptyList())
     var failWrites = false
 
     override fun weights(from: LocalDate, to: LocalDate): Flow<List<BodyWeight>> =
-        state.map { list -> list.filter { it.date in from..to }.sortedBy { it.date } }
+        weightsState.map { list -> list.filter { it.date in from..to }.sortedBy { it.date } }
+
+    override fun waists(from: LocalDate, to: LocalDate): Flow<List<WaistMeasurement>> =
+        waistsState.map { list -> list.filter { it.date in from..to }.sortedBy { it.date } }
 
     override suspend fun setWeight(date: LocalDate, weightKg: Double) {
         failIf(failWrites)
-        state.update { list -> list.filterNot { it.date == date } + BodyWeight(date, weightKg) }
+        weightsState.update { list -> list.filterNot { it.date == date } + BodyWeight(date, weightKg) }
     }
 
     override suspend fun clearWeight(date: LocalDate) {
         failIf(failWrites)
-        state.update { list -> list.filterNot { it.date == date } }
+        weightsState.update { list -> list.filterNot { it.date == date } }
+    }
+
+    override suspend fun setWaist(date: LocalDate, waistCm: Double) {
+        failIf(failWrites)
+        waistsState.update { list -> list.filterNot { it.date == date } + WaistMeasurement(date, waistCm) }
+    }
+}
+
+class FakePhotoRepository : PhotoRepository {
+    private val state = MutableStateFlow<List<ProgressPhoto>>(emptyList())
+    private var nextId = 1L
+    var failWrites = false
+
+    val all: List<ProgressPhoto> get() = state.value
+
+    override fun photos(): Flow<List<ProgressPhoto>> =
+        state.map { list -> list.sortedByDescending { it.date } }
+
+    override suspend fun addPhoto(date: LocalDate, pose: PhotoPose, fileName: String, nowMillis: Long) {
+        failIf(failWrites)
+        state.update { it + ProgressPhoto(nextId++, date, pose, fileName) }
+    }
+
+    override suspend fun deletePhoto(photoId: Long) {
+        failIf(failWrites)
+        state.update { list -> list.filterNot { it.id == photoId } }
     }
 }
 

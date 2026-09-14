@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FitnessCenter
+import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material3.Icon
@@ -32,6 +33,7 @@ import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.navigation.AppDestination
 import hr.rostanic20.gymbro.navigation.AppNavigator
 import hr.rostanic20.gymbro.navigation.rememberAppNavigator
+import hr.rostanic20.gymbro.ui.body.BodyScreen
 import hr.rostanic20.gymbro.ui.foods.FoodEditScreen
 import hr.rostanic20.gymbro.ui.foods.FoodsScreen
 import hr.rostanic20.gymbro.ui.meal.MealScreen
@@ -50,6 +52,7 @@ private data class Tab(
 private val tabs = listOf(
     Tab(AppDestination.Today, R.string.tab_today, Icons.Outlined.Today),
     Tab(AppDestination.Train, R.string.tab_train, Icons.Outlined.FitnessCenter),
+    Tab(AppDestination.Body, R.string.tab_body, Icons.Outlined.MonitorWeight),
     Tab(AppDestination.Settings, R.string.tab_settings, Icons.Outlined.Settings),
 )
 
@@ -106,6 +109,9 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
             }
             entry<AppDestination.Train> {
                 TrainScreen()
+            }
+            entry<AppDestination.Body> {
+                BodyScreen()
             }
             entry<AppDestination.Settings> {
                 SettingsScreen(onOpenFoods = { navigator.navigate(AppDestination.Foods) })

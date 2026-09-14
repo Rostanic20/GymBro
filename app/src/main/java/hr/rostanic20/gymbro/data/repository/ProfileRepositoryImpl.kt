@@ -2,6 +2,7 @@ package hr.rostanic20.gymbro.data.repository
 
 import hr.rostanic20.gymbro.data.local.ProfileLocalDataSource
 import hr.rostanic20.gymbro.data.toDomain
+import hr.rostanic20.gymbro.domain.CALORIE_ADJUSTMENT_RANGE
 import hr.rostanic20.gymbro.domain.model.Profile
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.Flow
@@ -26,5 +27,9 @@ class ProfileRepositoryImpl(
 
     override suspend fun setMealReminders(enabled: Boolean) {
         local.setMealReminders(enabled)
+    }
+
+    override suspend fun adjustCalories(deltaKcal: Int, date: LocalDate) {
+        local.adjustCalories(deltaKcal, date.toEpochDay(), CALORIE_ADJUSTMENT_RANGE)
     }
 }

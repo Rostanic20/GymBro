@@ -10,6 +10,7 @@ data class Profile(
     val proteinG: Int,
     val fatG: Int,
     val mealRemindersEnabled: Boolean = false,
+    val lastCalorieAdjustment: LocalDate? = null,
 )
 
 data class NutritionTargets(

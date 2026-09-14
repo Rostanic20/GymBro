@@ -10,12 +10,15 @@ import hr.rostanic20.gymbro.domain.model.LoadType
 import hr.rostanic20.gymbro.domain.model.LoggedSet
 import hr.rostanic20.gymbro.domain.model.Meal
 import hr.rostanic20.gymbro.domain.model.Nutrition
-import hr.rostanic20.gymbro.domain.model.Recipe
-import hr.rostanic20.gymbro.domain.model.RecipeItem
+import hr.rostanic20.gymbro.domain.model.PhotoPose
 import hr.rostanic20.gymbro.domain.model.PlannedExercise
 import hr.rostanic20.gymbro.domain.model.Profile
+import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.domain.model.Progression
+import hr.rostanic20.gymbro.domain.model.Recipe
+import hr.rostanic20.gymbro.domain.model.RecipeItem
 import hr.rostanic20.gymbro.domain.model.TopSet
+import hr.rostanic20.gymbro.domain.model.WaistMeasurement
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.domain.model.WorkoutSession
 import java.time.DayOfWeek
@@ -153,6 +156,18 @@ fun BodyWeightEntity.toDomain(): BodyWeight = BodyWeight(
     weightKg = weight_kg,
 )
 
+fun WaistEntity.toDomain(): WaistMeasurement = WaistMeasurement(
+    date = LocalDate.ofEpochDay(date_epoch_day),
+    waistCm = waist_cm,
+)
+
+fun PhotoEntity.toDomain(): ProgressPhoto = ProgressPhoto(
+    id = id,
+    date = LocalDate.ofEpochDay(date_epoch_day),
+    pose = PhotoPose.valueOf(pose),
+    fileName = file_name,
+)
+
 fun UserProfile.toDomain(): Profile = Profile(
     programStart = programStartEpochDay?.let(LocalDate::ofEpochDay),
     maintenanceKcal = maintenanceKcal,
@@ -161,4 +176,5 @@ fun UserProfile.toDomain(): Profile = Profile(
     proteinG = proteinG,
     fatG = fatG,
     mealRemindersEnabled = mealRemindersEnabled,
+    lastCalorieAdjustment = lastCalorieAdjustmentEpochDay?.let(LocalDate::ofEpochDay),
 )

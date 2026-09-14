@@ -233,4 +233,36 @@
     <string name="settings_meal_reminders">Meal reminders</string>
     <string name="settings_meal_reminders_note">Mon–Thu all six meals, Fri–Sun the two shakes. Eat by the clock, not by appetite.</string>
     <string name="settings_open_foods">Food list</string>
+
+    <string name="tab_body">Body</string>
+    <string name="body_title">Body</string>
+    <string name="check_title">Weekly check</string>
+    <string name="check_too_early">The weekly check starts in week %1$d. The first weeks add 1–1.5 kg of water from creatine and glycogen, so don\'t correct for it.</string>
+    <string name="check_recently_adjusted">Calories were just changed. Re-check on %1$s.</string>
+    <string name="check_not_enough">Weigh in most mornings for two weeks to compare one week against the next.</string>
+    <string name="check_on_track">On track: %1$s kg this week. Keep going.</string>
+    <string name="check_eat_more">Flat two weeks running (%1$s kg this week). Eat more.</string>
+    <string name="check_eat_less_fast">%1$s kg this week, two weeks running. Faster than that is mostly fat.</string>
+    <string name="check_eat_less_waist">Waist %1$s cm in four weeks, faster than the lifts justify.</string>
+    <string name="check_apply_more">Add %1$s kcal a day</string>
+    <string name="check_apply_less">Remove %1$s kcal a day</string>
+    <string name="check_current_adjustment">Adjustment so far: %1$s kcal a day</string>
+    <string name="weight_history_title">Weigh-ins</string>
+    <string name="weight_entry">%1$s kg</string>
+    <string name="waist_title">Waist</string>
+    <string name="waist_field">At the navel, relaxed (cm)</string>
+    <string name="waist_last">Last: %1$s cm on %2$s</string>
+    <string name="waist_gain">%1$s cm over four weeks</string>
+    <string name="waist_hint">Once a week. On plan looks like weight up, lifts up, and waist up less than 1 cm a month.</string>
+    <string name="photos_title">Progress photos</string>
+    <string name="photos_hint">Monthly. Same light, same time of day, same pose.</string>
+    <string name="photo_pose_front">Front</string>
+    <string name="photo_pose_side">Side</string>
+    <string name="photo_pose_back">Back</string>
+    <string name="photo_take">Camera</string>
+    <string name="photo_pick">Gallery</string>
+    <string name="photo_first">First · %1$s</string>
+    <string name="photo_latest">Latest · %1$s</string>
+    <string name="photo_none">No photo yet</string>
+    <string name="photo_delete">Delete photo</string>
 </resources>

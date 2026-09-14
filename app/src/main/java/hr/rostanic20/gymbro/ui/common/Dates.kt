@@ -17,6 +17,14 @@ fun rememberDayFormatter(): DateTimeFormatter {
     }
 }
 
+@Composable
+fun rememberShortDayFormatter(): DateTimeFormatter {
+    val locale = LocalLocale.current.platformLocale
+    return remember(locale) {
+        DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEdMMM"), locale)
+    }
+}
+
 fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
 fun utcMillisToLocalDate(millis: Long): LocalDate =
