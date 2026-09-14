@@ -101,6 +101,7 @@
     <string name="finish_other_first">Finish your %1$s workout first</string>
     <string name="open_other_session">Open %1$s</string>
     <string name="logged_today">Already logged today</string>
+    <string name="start_another_workout">Start another session</string>
 
     <string name="session_finish">Finish</string>
     <string name="session_discard">Discard</string>
@@ -137,11 +138,11 @@
     <string name="last_time_reps">Last time: %1$s</string>
 
     <string name="suggest_reps">Aim for %1$s reps</string>
-    <string name="suggest_find_weight">First time: find a weight that leaves %1$s reps in reserve</string>
+    <string name="suggest_find_weight">First time: find a weight you can lift at RIR %1$s</string>
     <string name="suggest_start_weight">First time: start at %1$s kg</string>
     <string name="suggest_start_assisted">First time: start with %1$s kg of assistance</string>
-    <string name="suggest_calibrate">Week 1: find a weight that leaves %1$s reps in reserve</string>
-    <string name="suggest_calibrate_from">Week 1: start around %1$s kg and adjust to leave %2$s reps in reserve</string>
+    <string name="suggest_calibrate">Week 1: find a weight you can lift at RIR %1$s</string>
+    <string name="suggest_calibrate_from">Week 1: start around %1$s kg and adjust until it feels like RIR %2$s</string>
     <string name="suggest_repeat_weight">Same %1$s kg, beat last time (%2$s)</string>
     <string name="suggest_repeat_assisted">Same %1$s kg of assistance, beat last time (%2$s)</string>
     <string name="suggest_repeat_reps">Beat last time (%1$s)</string>

@@ -36,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.dimensionResource
@@ -273,6 +274,7 @@ private fun WaistCard(state: BodyUiState, onSave: (Double) -> Unit) {
         mutableStateOf(state.waistTodayCm?.let { formatKg(it, locale) }.orEmpty())
     }
     val parsed = parseKg(text)?.takeIf { it in MIN_WAIST_CM..MAX_WAIST_CM }
+    val focusManager = LocalFocusManager.current
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(spacing.s16),
@@ -291,7 +293,13 @@ private fun WaistCard(state: BodyUiState, onSave: (Double) -> Unit) {
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                 )
-                Button(onClick = { parsed?.let(onSave) }, enabled = parsed != null && parsed != state.waistTodayCm) {
+                Button(
+                    onClick = {
+                        parsed?.let(onSave)
+                        focusManager.clearFocus()
+                    },
+                    enabled = parsed != null && parsed != state.waistTodayCm,
+                ) {
                     Text(stringResource(R.string.action_save))
                 }
             }
