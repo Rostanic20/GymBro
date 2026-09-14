@@ -15,6 +15,7 @@ fun plannedExercise(
     startLoadKg: Double? = null,
     barWeightKg: Double? = null,
 ): PlannedExercise = PlannedExercise(
+    position = id.toInt(),
     exercise = Exercise(
         id = id,
         name = name,

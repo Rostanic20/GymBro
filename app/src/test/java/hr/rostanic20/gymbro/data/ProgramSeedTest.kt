@@ -79,11 +79,11 @@ class ProgramSeedTest {
         val exercises = repository().exercisesByName()
 
         assertTrue(exercises.keys.none { " or " in it })
-        assertEquals(listOf("Bulgarian split squat"), exercises.getValue("Hack squat").alternatives.map { it.name })
-        assertEquals(listOf("Cable fly", "Dumbbell fly"), exercises.getValue("Pec deck").alternatives.map { it.name })
+        assertEquals(listOf("Bulgarian split squat"), exercises.getValue("Hack squat").alternatives.map { it.exercise.name })
+        assertEquals(listOf("Cable fly", "Dumbbell fly"), exercises.getValue("Pec deck").alternatives.map { it.exercise.name })
         assertEquals(
             listOf("Band-assisted pull-up", "Lat pulldown, wide grip"),
-            exercises.getValue("Pull-up").alternatives.map { it.name },
+            exercises.getValue("Pull-up").alternatives.map { it.exercise.name },
         )
     }
 

@@ -35,7 +35,9 @@ class ScreensUiTest {
     val compose = createComposeRule()
 
     private val hackSquat = plannedExercise(id = 21, name = "Hack squat", startLoadKg = null).copy(
-        alternatives = listOf(Alternative(26, "Bulgarian split squat", "No cost. Weight is per hand, reps per leg.")),
+        alternatives = listOf(
+            Alternative(plannedExercise(26, "Bulgarian split squat").exercise, "No cost. Weight is per hand, reps per leg."),
+        ),
     )
 
     @Test

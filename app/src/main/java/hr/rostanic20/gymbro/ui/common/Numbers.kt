@@ -3,6 +3,8 @@ package hr.rostanic20.gymbro.ui.common
 import java.text.NumberFormat
 import java.util.Locale
 
+const val MAX_LOAD_KG = 500.0
+
 private const val MAX_KG_FRACTION_DIGITS = 2
 
 fun formatKg(kg: Double, locale: Locale): String =

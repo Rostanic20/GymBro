@@ -29,6 +29,7 @@ class ProgramCalendarTest {
     )
 
     private fun planned(sets: Int) = PlannedExercise(
+        position = 1,
         exercise = Exercise(1, "Barbell bench press", LoadType.WEIGHT, Progression.DOUBLE, 40.0, 2.5, 20.0),
         sets = sets,
         reps = 5..8,

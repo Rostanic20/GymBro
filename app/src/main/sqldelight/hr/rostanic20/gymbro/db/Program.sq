@@ -122,6 +122,7 @@ SELECT
     workout_day.name AS day_name,
     workout_day.emphasis,
     workout_day.iso_day_of_week,
+    day_exercise.position,
     day_exercise.sets,
     day_exercise.rep_min,
     day_exercise.rep_max,
@@ -145,10 +146,9 @@ ORDER BY workout_day.iso_day_of_week, day_exercise.position;
 
 selectAlternatives:
 SELECT
-    exercise_alternative.exercise_id,
-    alternative.id AS alternative_id,
-    alternative.name AS alternative_name,
-    exercise_alternative.note
+    exercise_alternative.exercise_id AS slot_exercise_id,
+    alternative.*,
+    exercise_alternative.note AS alternative_note
 FROM exercise_alternative
 INNER JOIN exercise AS alternative ON alternative.id = exercise_alternative.alternative_id
 ORDER BY exercise_alternative.exercise_id, alternative.name;

@@ -199,8 +199,8 @@ private fun ExerciseDetails(planned: PlannedExercise, onEditLoads: (Exercise) ->
             )
             planned.alternatives.forEach { alternative ->
                 Text(
-                    text = alternative.note?.let { stringResource(R.string.alternative_with_note, alternative.name, it) }
-                        ?: alternative.name,
+                    text = alternative.note?.let { stringResource(R.string.alternative_with_note, alternative.exercise.name, it) }
+                        ?: alternative.exercise.name,
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
