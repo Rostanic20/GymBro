@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">GymBro</string>
+
+    <string name="tab_today">Today</string>
+    <string name="tab_train">Train</string>
+    <string name="tab_body">Body</string>
+    <string name="tab_progress">Progress</string>
+
+    <string name="today_week">Week %1$d</string>
+    <string name="today_not_started_title">Program not started</string>
+    <string name="today_not_started_body">Weeks 1–2 hold maintenance at %1$,d kcal every day, travel weekend included. The surplus starts in week 3.</string>
+    <string name="today_start_program">Start this week</string>
+    <string name="phase_maintenance">Maintenance · prove you can hit it every day</string>
+    <string name="phase_surplus">Surplus · aim for 0.3 kg a week</string>
+    <string name="target_kcal">kcal</string>
+    <string name="target_protein">Protein</string>
+    <string name="target_fat">Fat</string>
+    <string name="target_carbs">Carbs</string>
+    <string name="kcal_value">%1$,d</string>
+    <string name="grams_value">%1$d g</string>
+    <string name="today_travel_title">Travel day</string>
+    <string name="today_travel_body">Walk, eat, sleep. Keep both shakes and keep protein up.</string>
+
+    <string name="train_title">Program</string>
+    <string name="train_rest_days">Fri–Sun · travel · walk, eat, sleep</string>
+    <string name="today_badge">Today</string>
+    <string name="top_set">TOP</string>
+    <string name="day_title">%1$s · %2$s</string>
+    <string name="day_meta">%1$s · %2$s</string>
+    <plurals name="working_sets">
+        <item quantity="one">%d working set</item>
+        <item quantity="other">%d working sets</item>
+    </plurals>
+    <string name="sets_reps">%1$d × %2$s</string>
+    <string name="range">%1$d–%2$d</string>
+    <string name="exercise_prescription">%1$s · RIR %2$s · %3$s</string>
+    <string name="rest_seconds">%1$d s rest</string>
+    <string name="rest_minutes">%1$s min rest</string>
+    <string name="swap">No machine? %1$s</string>
+
+    <string name="body_placeholder">Weight, waist and progress photos arrive in phase 4.</string>
+    <string name="progress_placeholder">Bodyweight and lift charts arrive in phase 5.</string>
 </resources>
