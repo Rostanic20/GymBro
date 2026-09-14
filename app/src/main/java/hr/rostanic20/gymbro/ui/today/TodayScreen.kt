@@ -31,6 +31,7 @@ import hr.rostanic20.gymbro.domain.model.NutritionTargets
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.formatCount
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.setsRepsLabel
@@ -74,7 +75,9 @@ internal fun TodayContent(
             item { WeekBanner(week = week) }
         }
         item { TargetsCard(targets = state.targets) }
-        item { WorkoutSummaryCard(workout = state.workout, onOpenWorkout = onOpenWorkout) }
+        item {
+            WorkoutSummaryCard(workout = state.workout, status = state.workoutStatus, onOpenWorkout = onOpenWorkout)
+        }
     }
 }
 
@@ -192,7 +195,11 @@ private fun TargetValue(value: String, label: String) {
 }
 
 @Composable
-private fun WorkoutSummaryCard(workout: WorkoutDay?, onOpenWorkout: (dayId: Long) -> Unit) {
+private fun WorkoutSummaryCard(
+    workout: WorkoutDay?,
+    status: WorkoutStatus,
+    onOpenWorkout: (dayId: Long) -> Unit,
+) {
     val spacing = LocalSpacing.current
     if (workout == null) {
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -217,12 +224,28 @@ private fun WorkoutSummaryCard(workout: WorkoutDay?, onOpenWorkout: (dayId: Long
             modifier = Modifier.padding(spacing.s16),
             verticalArrangement = Arrangement.spacedBy(spacing.s8),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(spacing.s8),
+            ) {
                 Text(
                     text = stringResource(R.string.day_title, workout.name, workout.emphasis),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
+                when (status) {
+                    WorkoutStatus.IN_PROGRESS -> Tag(
+                        text = stringResource(R.string.status_in_progress),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    WorkoutStatus.LOGGED -> Tag(
+                        text = stringResource(R.string.status_logged),
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                    WorkoutStatus.NOT_STARTED -> Unit
+                }
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                     contentDescription = stringResource(R.string.today_open_workout),

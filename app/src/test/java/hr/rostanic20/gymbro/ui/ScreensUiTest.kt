@@ -81,6 +81,7 @@ class ScreensUiTest {
                         programStart = null,
                         week = null,
                         workout = null,
+                        workoutStatus = hr.rostanic20.gymbro.ui.today.WorkoutStatus.NOT_STARTED,
                         targets = defaultProfile.nutritionTargets(week = null),
                         suggestedStart = sunday.plusDays(1),
                     ),
