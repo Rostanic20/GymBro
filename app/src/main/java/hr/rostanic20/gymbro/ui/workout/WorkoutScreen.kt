@@ -163,18 +163,19 @@ private fun SessionButtons(
                     Text(stringResource(R.string.open_other_session, state.activeSessionDayName.orEmpty()))
                 }
             }
-            else -> {
+            state.loggedToday -> {
+                Text(
+                    text = stringResource(R.string.logged_today),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedButton(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.start_another_workout))
+                }
+            }
+            else ->
                 Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.start_workout))
                 }
-                if (state.loggedToday) {
-                    Text(
-                        text = stringResource(R.string.logged_today),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
         }
     }
 }

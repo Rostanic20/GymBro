@@ -82,7 +82,7 @@ private fun TrainContent(
     LaunchedEffect(state.defaultExpandedDayId) {
         if (scrolledToToday) return@LaunchedEffect
         val dayIndex = state.days.indexOfFirst { it.id == state.defaultExpandedDayId }
-        if (dayIndex > 0) listState.scrollToItem(dayIndex + if (showBanner) 2 else 1)
+        if (dayIndex > 0) listState.scrollToItem(dayIndex + if (showBanner) 3 else 2)
         scrolledToToday = true
     }
 
@@ -101,6 +101,7 @@ private fun TrainContent(
         if (week != null && showBanner) {
             item { WeekBanner(week = week) }
         }
+        item { LiftHistoryCard(history = state.liftHistory) }
         items(state.days, key = { it.id }) { day ->
             var expanded by rememberSaveable { mutableStateOf(day.id == state.defaultExpandedDayId) }
             WorkoutDayCard(
@@ -118,7 +119,6 @@ private fun TrainContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        item { LiftHistoryCard(history = state.liftHistory) }
     }
 
     LoadSettingsDialogHost(
@@ -208,7 +208,7 @@ private fun LiftHistoryCard(history: List<LiftHistory>) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else {
+            } else if (logged.any { it.points.size >= MIN_CHART_POINTS }) {
                 Text(
                     text = stringResource(R.string.lift_trend_caption),
                     style = MaterialTheme.typography.bodySmall,
@@ -217,14 +217,15 @@ private fun LiftHistoryCard(history: List<LiftHistory>) {
             }
             logged.forEach { lift ->
                 val loadType = lift.exercise.loadType
+                val latest = topSetLabel(loadType, lift.points.last())
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.s4)) {
                     Text(text = lift.exercise.name, style = MaterialTheme.typography.titleSmall)
                     Text(
-                        text = stringResource(
-                            R.string.lift_progress,
-                            topSetLabel(loadType, lift.points.first()),
-                            topSetLabel(loadType, lift.points.last()),
-                        ),
+                        text = if (lift.points.size == 1) {
+                            latest
+                        } else {
+                            stringResource(R.string.lift_progress, topSetLabel(loadType, lift.points.first()), latest)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (lift.points.size >= MIN_CHART_POINTS) {

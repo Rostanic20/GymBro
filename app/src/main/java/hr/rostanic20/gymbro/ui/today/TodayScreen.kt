@@ -28,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
@@ -256,7 +257,7 @@ private fun ProgressRow(label: String, value: String, progress: Float) {
             Text(text = label, style = MaterialTheme.typography.labelLarge)
             Text(text = value, style = MaterialTheme.typography.labelLarge)
         }
-        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), drawStopIndicator = {})
     }
 }
 
@@ -411,6 +412,7 @@ private fun WeightCard(state: TodayUiState, onSave: (Double) -> Unit) {
         mutableStateOf(state.weightTodayKg?.let { formatKg(it, locale) }.orEmpty())
     }
     val parsed = parseKg(text)?.takeIf { it in MIN_BODY_WEIGHT_KG..MAX_BODY_WEIGHT_KG }
+    val focusManager = LocalFocusManager.current
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(spacing.s16),
@@ -430,7 +432,10 @@ private fun WeightCard(state: TodayUiState, onSave: (Double) -> Unit) {
                     modifier = Modifier.weight(1f),
                 )
                 Button(
-                    onClick = { parsed?.let(onSave) },
+                    onClick = {
+                        parsed?.let(onSave)
+                        focusManager.clearFocus()
+                    },
                     enabled = parsed != null && parsed != state.weightTodayKg,
                 ) {
                     Text(stringResource(R.string.action_save))
