@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
-private const val PHOTO_DIRECTORY = "photos"
+const val PHOTO_DIRECTORY = "photos"
 
 class AndroidPhotoStorage(
     private val context: Context,

@@ -34,6 +34,16 @@ class WeightTest {
     }
 
     @Test
+    fun `the rolling average smooths each weigh-in over its trailing week`() {
+        val entries = weights(monday, 70.0, 71.0, 69.0) + BodyWeight(monday.plusDays(10), 72.0)
+
+        assertEquals(
+            listOf(70.0, 70.5, 70.0, 72.0),
+            entries.shuffled().rollingWeeklyAverage().map { it.weightKg },
+        )
+    }
+
+    @Test
     fun `weekly change needs weigh-ins in both weeks`() {
         assertNull(weights(monday, 70.4, 70.3).weeklyChange(monday.plusDays(6)))
     }

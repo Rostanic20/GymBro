@@ -1,6 +1,8 @@
 package hr.rostanic20.gymbro.util
 
 import hr.rostanic20.gymbro.core.DateProvider
+import hr.rostanic20.gymbro.core.HealthSource
+import hr.rostanic20.gymbro.core.HealthSummary
 import hr.rostanic20.gymbro.core.MealReminderScheduler
 import hr.rostanic20.gymbro.core.RestTimer
 import hr.rostanic20.gymbro.core.WallClock
@@ -18,6 +20,7 @@ import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.domain.model.Recipe
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
+import hr.rostanic20.gymbro.domain.model.TopSetPoint
 import hr.rostanic20.gymbro.domain.model.WaistMeasurement
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.domain.model.WorkoutSession
@@ -34,6 +37,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.io.IOException
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 val defaultProfile = Profile(
     programStart = null,
@@ -103,6 +109,7 @@ class FakeProgramRepository(days: List<WorkoutDay> = emptyList()) : ProgramRepos
 class FakeSessionRepository : SessionRepository {
     private val sessions = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private val loggedSets = MutableStateFlow<List<Pair<Long, LoggedSet>>>(emptyList())
+    private val historyByExercise = MutableStateFlow<Map<Long, List<TopSetPoint>>>(emptyMap())
     private var nextId = 1L
 
     val lastSetsByExercise = mutableMapOf<Long, List<LoggedSet>>()
@@ -127,6 +134,13 @@ class FakeSessionRepository : SessionRepository {
 
     override suspend fun recentTopSets(exerciseId: Long, limit: Int): List<TopSet> =
         topSetsByExercise[exerciseId].orEmpty().take(limit)
+
+    override fun topSetHistory(exerciseId: Long, limit: Int): Flow<List<TopSetPoint>> =
+        historyByExercise.map { it[exerciseId].orEmpty().takeLast(limit) }
+
+    fun setHistory(exerciseId: Long, points: List<TopSetPoint>) {
+        historyByExercise.update { it + (exerciseId to points) }
+    }
 
     override suspend fun startSession(dayId: Long, date: LocalDate, isDeload: Boolean, nowMillis: Long): Long {
         failIf(failWrites)
@@ -342,5 +356,27 @@ class FakeDateProvider(date: LocalDate) : DateProvider {
 
     override fun today(): LocalDate = state.value
 
+    override fun now(): ZonedDateTime = state.value.atTime(LocalTime.NOON).atZone(ZoneOffset.UTC)
+
     override fun todayFlow(): Flow<LocalDate> = state
+}
+
+class FakeHealthSource : HealthSource {
+    var available = true
+    var granted = false
+    var fail = false
+    var summary = HealthSummary(steps = null, sleep = null)
+    val requestedDates = mutableListOf<LocalDate>()
+
+    override val readPermissions: Set<String> = setOf("steps", "sleep")
+
+    override fun isAvailable(): Boolean = available
+
+    override suspend fun hasPermissions(): Boolean = granted
+
+    override suspend fun summaryFor(date: LocalDate, now: ZonedDateTime): HealthSummary {
+        if (fail) throw IOException("health connect down")
+        requestedDates += date
+        return summary
+    }
 }

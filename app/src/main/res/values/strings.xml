@@ -11,6 +11,9 @@
 
     <string name="message_save_failed">Saving failed. Try again.</string>
     <string name="message_targets_saved">Targets saved</string>
+    <string name="message_backup_exported">Backup exported</string>
+    <string name="message_backup_failed">Backup failed. Try again.</string>
+    <string name="message_restore_failed">That file isn\'t a GymBro backup, or it comes from a newer version of the app.</string>
 
     <string name="today_week">Week %1$d</string>
     <string name="today_starts_on">Program starts %1$s</string>
@@ -265,4 +268,39 @@
     <string name="photo_latest">Latest · %1$s</string>
     <string name="photo_none">No photo yet</string>
     <string name="photo_delete">Delete photo</string>
+    <string name="weight_trend_caption">Last 12 weeks. Dots are weigh-ins, the line is the 7-day average.</string>
+
+    <string name="lifts_title">Top sets</string>
+    <string name="lifts_empty">Finish a workout to see your top sets here.</string>
+    <string name="lift_progress">First %1$s · latest %2$s</string>
+    <string name="lift_trend_caption">The line combines weight and reps, so it climbs as either one does.</string>
+
+    <string name="health_title">Steps and sleep</string>
+    <string name="health_loading">Reading Health Connect…</string>
+    <string name="health_unavailable">Health Connect isn\'t available on this phone.</string>
+    <string name="health_connect_body">Read today\'s steps and last night\'s sleep from Health Connect. In Samsung Health, turn on Health Connect sync so the data reaches it.</string>
+    <string name="health_connect">Connect</string>
+    <string name="health_failed">Couldn\'t read Health Connect.</string>
+    <string name="health_retry">Try again</string>
+    <string name="health_steps">Steps today: %1$s</string>
+    <string name="health_sleep">Sleep last night: %1$s</string>
+    <string name="health_no_value">none yet</string>
+    <string name="health_no_data_hint">Nothing synced yet. Open Samsung Health once so it pushes data to Health Connect.</string>
+    <string name="duration_hours_minutes">%1$s h %2$s min</string>
+
+    <string name="backup_title">Backup</string>
+    <string name="backup_body">One zip with workouts, food log, weigh-ins, settings and progress photos.</string>
+    <string name="backup_export">Export</string>
+    <string name="backup_restore">Restore</string>
+    <string name="backup_restore_title">Restore from a backup?</string>
+    <string name="backup_restore_body">Everything in GymBro is replaced by what\'s in the backup. The app restarts to finish.</string>
+    <string name="backup_restore_ready_title">Restore ready</string>
+    <string name="backup_restore_ready_body">GymBro restarts now to finish restoring.</string>
+    <string name="backup_restart">Restart</string>
+    <string name="backup_weekly">Weekly backup</string>
+    <string name="backup_weekly_off">Pick a folder, ideally one a cloud app syncs, and GymBro saves a backup there every week.</string>
+    <string name="backup_weekly_folder">Saved to %1$s every week. The four newest are kept.</string>
+    <string name="backup_last_weekly">Last weekly backup: %1$s</string>
+    <string name="backup_no_weekly_yet">No weekly backup yet</string>
+    <string name="backup_change_folder">Change folder</string>
 </resources>

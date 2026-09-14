@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,10 +48,17 @@ import hr.rostanic20.gymbro.core.PhotoTarget
 import hr.rostanic20.gymbro.domain.CHECK_FROM_WEEK
 import hr.rostanic20.gymbro.domain.WeeklyCheck
 import hr.rostanic20.gymbro.domain.calorieChange
+import hr.rostanic20.gymbro.domain.model.BodyWeight
 import hr.rostanic20.gymbro.domain.model.PhotoPose
 import hr.rostanic20.gymbro.domain.model.ProgressPhoto
+import hr.rostanic20.gymbro.domain.rollingWeeklyAverage
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.ChartPoint
+import hr.rostanic20.gymbro.ui.common.ChartSeries
+import hr.rostanic20.gymbro.ui.common.ChartStyle
+import hr.rostanic20.gymbro.ui.common.LineChart
+import hr.rostanic20.gymbro.ui.common.MIN_CHART_POINTS
 import hr.rostanic20.gymbro.ui.common.formatCount
 import hr.rostanic20.gymbro.ui.common.formatKg
 import hr.rostanic20.gymbro.ui.common.parseKg
@@ -200,6 +208,9 @@ private fun WeightHistoryCard(state: BodyUiState) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (state.weightTrend.size >= MIN_CHART_POINTS) {
+                WeightTrendChart(weights = state.weightTrend)
+            }
             state.recentWeights.forEach { entry ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -219,6 +230,39 @@ private fun WeightHistoryCard(state: BodyUiState) {
         }
     }
 }
+
+private const val WEIGHT_CHART_ASPECT_RATIO = 2f
+
+@Composable
+private fun WeightTrendChart(weights: List<BodyWeight>) {
+    val spacing = LocalSpacing.current
+    val dotColor = MaterialTheme.colorScheme.outline
+    val lineColor = MaterialTheme.colorScheme.primary
+    val series = remember(weights, dotColor, lineColor) {
+        listOf(
+            ChartSeries(weights.map { it.toChartPoint() }, dotColor, ChartStyle.DOTS),
+            ChartSeries(weights.rollingWeeklyAverage().map { it.toChartPoint() }, lineColor, ChartStyle.LINE),
+        )
+    }
+    Column(
+        modifier = Modifier.padding(top = spacing.s8),
+        verticalArrangement = Arrangement.spacedBy(spacing.s4),
+    ) {
+        LineChart(
+            series = series,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(WEIGHT_CHART_ASPECT_RATIO),
+        )
+        Text(
+            text = stringResource(R.string.weight_trend_caption),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private fun BodyWeight.toChartPoint() = ChartPoint(date.toEpochDay().toFloat(), weightKg.toFloat())
 
 @Composable
 private fun WaistCard(state: BodyUiState, onSave: (Double) -> Unit) {

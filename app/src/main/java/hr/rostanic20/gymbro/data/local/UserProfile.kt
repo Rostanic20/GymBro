@@ -12,4 +12,6 @@ data class UserProfile(
     val fatG: Int = 75,
     val mealRemindersEnabled: Boolean = false,
     val lastCalorieAdjustmentEpochDay: Long? = null,
+    val backupFolderUri: String? = null,
+    val lastAutoBackupMillis: Long? = null,
 )

@@ -10,20 +10,23 @@ import java.time.ZonedDateTime
 
 interface DateProvider {
     fun today(): LocalDate
+    fun now(): ZonedDateTime
     fun todayFlow(): Flow<LocalDate>
 }
 
 private const val MIN_WAIT_MILLIS = 1_000L
 
 class SystemDateProvider(
-    private val now: () -> ZonedDateTime = { ZonedDateTime.now() },
+    private val clock: () -> ZonedDateTime = { ZonedDateTime.now() },
 ) : DateProvider {
 
-    override fun today(): LocalDate = now().toLocalDate()
+    override fun today(): LocalDate = clock().toLocalDate()
+
+    override fun now(): ZonedDateTime = clock()
 
     override fun todayFlow(): Flow<LocalDate> = flow {
         while (true) {
-            val current = now()
+            val current = clock()
             emit(current.toLocalDate())
             val nextMidnight = current.toLocalDate().plusDays(1).atStartOfDay(current.zone)
             delay((Duration.between(current, nextMidnight).toMillis() + 1).coerceAtLeast(MIN_WAIT_MILLIS))

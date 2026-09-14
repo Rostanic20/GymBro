@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,10 +36,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.model.Exercise
+import hr.rostanic20.gymbro.domain.model.LoadType
+import hr.rostanic20.gymbro.domain.model.TopSetPoint
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
+import hr.rostanic20.gymbro.domain.trendValue
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.ChartPoint
+import hr.rostanic20.gymbro.ui.common.ChartSeries
+import hr.rostanic20.gymbro.ui.common.ChartStyle
+import hr.rostanic20.gymbro.ui.common.LineChart
+import hr.rostanic20.gymbro.ui.common.MIN_CHART_POINTS
 import hr.rostanic20.gymbro.ui.common.Tag
+import hr.rostanic20.gymbro.ui.common.formatKg
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import hr.rostanic20.gymbro.ui.workout.ExerciseItem
 import hr.rostanic20.gymbro.ui.workout.LoadSettings
@@ -108,6 +118,7 @@ private fun TrainContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        item { LiftHistoryCard(history = state.liftHistory) }
     }
 
     LoadSettingsDialogHost(
@@ -177,5 +188,77 @@ private fun WorkoutDayCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LiftHistoryCard(history: List<LiftHistory>) {
+    val spacing = LocalSpacing.current
+    val lineColor = MaterialTheme.colorScheme.primary
+    val logged = history.filter { it.points.isNotEmpty() }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(spacing.s16),
+            verticalArrangement = Arrangement.spacedBy(spacing.s12),
+        ) {
+            Text(text = stringResource(R.string.lifts_title), style = MaterialTheme.typography.titleMedium)
+            if (logged.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.lifts_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.lift_trend_caption),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            logged.forEach { lift ->
+                val loadType = lift.exercise.loadType
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.s4)) {
+                    Text(text = lift.exercise.name, style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = stringResource(
+                            R.string.lift_progress,
+                            topSetLabel(loadType, lift.points.first()),
+                            topSetLabel(loadType, lift.points.last()),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    if (lift.points.size >= MIN_CHART_POINTS) {
+                        LineChart(
+                            series = listOf(
+                                ChartSeries(
+                                    points = lift.points.map {
+                                        ChartPoint(it.date.toEpochDay().toFloat(), it.trendValue(loadType).toFloat())
+                                    },
+                                    color = lineColor,
+                                    style = ChartStyle.LINE,
+                                ),
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(LIFT_CHART_ASPECT_RATIO),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val LIFT_CHART_ASPECT_RATIO = 3f
+
+@Composable
+private fun topSetLabel(loadType: LoadType, point: TopSetPoint): String {
+    val locale = LocalLocale.current.platformLocale
+    val load = point.loadKg
+    return when {
+        load == null || loadType == LoadType.BODYWEIGHT ->
+            pluralStringResource(R.plurals.set_bodyweight, point.reps, point.reps)
+        loadType == LoadType.ASSISTANCE -> stringResource(R.string.set_assisted, formatKg(load, locale), point.reps)
+        else -> stringResource(R.string.set_weight, formatKg(load, locale), point.reps)
     }
 }

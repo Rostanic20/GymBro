@@ -12,6 +12,9 @@ fun List<BodyWeight>.averageForWeekEnding(date: LocalDate): Double? {
     return if (weights.isEmpty()) null else weights.average()
 }
 
+fun List<BodyWeight>.rollingWeeklyAverage(): List<BodyWeight> =
+    sortedBy { it.date }.map { BodyWeight(it.date, averageForWeekEnding(it.date) ?: it.weightKg) }
+
 fun List<BodyWeight>.weeklyChange(date: LocalDate): Double? {
     val current = averageForWeekEnding(date) ?: return null
     val previous = averageForWeekEnding(date.minusDays(DAYS_PER_WEEK)) ?: return null
