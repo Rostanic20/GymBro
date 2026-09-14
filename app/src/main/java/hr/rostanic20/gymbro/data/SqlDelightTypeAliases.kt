@@ -1,8 +1,12 @@
 package hr.rostanic20.gymbro.data
 
+import hr.rostanic20.gymbro.db.Body_weight
+import hr.rostanic20.gymbro.db.Food
+import hr.rostanic20.gymbro.db.Food_log
 import hr.rostanic20.gymbro.db.SelectAlternatives
 import hr.rostanic20.gymbro.db.SelectFirstSetsForExercise
 import hr.rostanic20.gymbro.db.SelectProgram
+import hr.rostanic20.gymbro.db.SelectRecipeItems
 import hr.rostanic20.gymbro.db.Set_entry
 import hr.rostanic20.gymbro.db.Workout_session
 
@@ -11,3 +15,7 @@ typealias AlternativeRowEntity = SelectAlternatives
 typealias SessionEntity = Workout_session
 typealias SetEntity = Set_entry
 typealias TopSetRowEntity = SelectFirstSetsForExercise
+typealias FoodEntity = Food
+typealias RecipeRowEntity = SelectRecipeItems
+typealias FoodLogEntity = Food_log
+typealias BodyWeightEntity = Body_weight

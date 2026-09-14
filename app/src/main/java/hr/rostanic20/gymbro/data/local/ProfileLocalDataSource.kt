@@ -10,6 +10,7 @@ interface ProfileLocalDataSource {
     fun profile(): Flow<UserProfile>
     suspend fun setProgramStart(epochDay: Long?)
     suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int)
+    suspend fun setMealReminders(enabled: Boolean)
 }
 
 class ProfileLocalDataSourceImpl(
@@ -31,4 +32,8 @@ class ProfileLocalDataSourceImpl(
                 it.copy(maintenanceKcal = maintenanceKcal, surplusKcal = surplusKcal, proteinG = proteinG, fatG = fatG)
             }
         }
+
+    override suspend fun setMealReminders(enabled: Boolean): Unit = withContext(writeContext) {
+        ds.updateData { it.copy(mealRemindersEnabled = enabled) }
+    }
 }

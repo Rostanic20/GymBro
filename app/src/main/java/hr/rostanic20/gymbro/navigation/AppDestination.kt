@@ -19,6 +19,15 @@ sealed interface AppDestination : NavKey {
 
     @Serializable
     data class Session(val sessionId: Long) : AppDestination
+
+    @Serializable
+    data class Meal(val epochDay: Long, val slot: Int) : AppDestination
+
+    @Serializable
+    data object Foods : AppDestination
+
+    @Serializable
+    data class FoodEdit(val foodId: Long?) : AppDestination
 }
 
 val TopLevelDestinations: List<AppDestination> = listOf(

@@ -1,5 +1,6 @@
 package hr.rostanic20.gymbro.ui.today
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,24 +9,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
+import hr.rostanic20.gymbro.domain.model.Meal
+import hr.rostanic20.gymbro.domain.model.Nutrition
 import hr.rostanic20.gymbro.domain.model.NutritionPhase
 import hr.rostanic20.gymbro.domain.model.NutritionTargets
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
@@ -33,16 +44,26 @@ import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
 import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.formatCount
+import hr.rostanic20.gymbro.ui.common.formatKg
+import hr.rostanic20.gymbro.ui.common.labelRes
+import hr.rostanic20.gymbro.ui.common.parseKg
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.setsRepsLabel
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import hr.rostanic20.gymbro.ui.workout.WeekBanner
 import hr.rostanic20.gymbro.ui.workout.showsWeekBanner
 import org.koin.compose.viewmodel.koinViewModel
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlin.math.roundToInt
+
+private const val MIN_BODY_WEIGHT_KG = 30.0
+private const val MAX_BODY_WEIGHT_KG = 300.0
 
 @Composable
 fun TodayScreen(
     onOpenWorkout: (dayId: Long) -> Unit,
+    onOpenMeal: (epochDay: Long, slot: Int) -> Unit,
     viewModel: TodayViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -50,7 +71,13 @@ fun TodayScreen(
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
     state?.let {
-        TodayContent(state = it, onStartProgram = viewModel::startProgram, onOpenWorkout = onOpenWorkout)
+        TodayContent(
+            state = it,
+            onStartProgram = viewModel::startProgram,
+            onOpenWorkout = onOpenWorkout,
+            onOpenMeal = onOpenMeal,
+            onSaveWeight = viewModel::saveWeight,
+        )
     }
 }
 
@@ -59,6 +86,8 @@ internal fun TodayContent(
     state: TodayUiState,
     onStartProgram: () -> Unit,
     onOpenWorkout: (dayId: Long) -> Unit,
+    onOpenMeal: (epochDay: Long, slot: Int) -> Unit,
+    onSaveWeight: (Double) -> Unit,
 ) {
     val spacing = LocalSpacing.current
     val week = state.week
@@ -74,10 +103,17 @@ internal fun TodayContent(
         if (week != null && showsWeekBanner(week)) {
             item { WeekBanner(week = week) }
         }
-        item { TargetsCard(targets = state.targets) }
+        item { NutritionCard(targets = state.targets, eaten = state.eaten) }
+        item {
+            MealsCard(
+                eatenByMeal = state.eatenByMeal,
+                onOpenMeal = { onOpenMeal(state.date.toEpochDay(), it.slot) },
+            )
+        }
         item {
             WorkoutSummaryCard(workout = state.workout, status = state.workoutStatus, onOpenWorkout = onOpenWorkout)
         }
+        item { WeightCard(state = state, onSave = onSaveWeight) }
     }
 }
 
@@ -142,7 +178,7 @@ private fun NotStartedCard(state: TodayUiState, onStartProgram: () -> Unit) {
 }
 
 @Composable
-private fun TargetsCard(targets: NutritionTargets) {
+private fun NutritionCard(targets: NutritionTargets, eaten: Nutrition) {
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -160,37 +196,124 @@ private fun TargetsCard(targets: NutritionTargets) {
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ProgressRow(
+                label = stringResource(R.string.target_kcal),
+                value = stringResource(
+                    R.string.food_eaten_kcal,
+                    formatCount(eaten.kcal.roundToInt(), locale),
+                    formatCount(targets.kcal, locale),
+                ),
+                progress = fraction(eaten.kcal, targets.kcal),
+            )
+            ProgressRow(
+                label = stringResource(R.string.target_protein),
+                value = stringResource(
+                    R.string.food_eaten_grams,
+                    formatCount(eaten.proteinG.roundToInt(), locale),
+                    formatCount(targets.proteinG, locale),
+                ),
+                progress = fraction(eaten.proteinG, targets.proteinG),
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                TargetValue(value = formatCount(targets.kcal, locale), label = stringResource(R.string.target_kcal))
-                TargetValue(
-                    value = stringResource(R.string.grams_value, targets.proteinG),
-                    label = stringResource(R.string.target_protein),
-                )
-                TargetValue(
-                    value = stringResource(R.string.grams_value, targets.fatG),
-                    label = stringResource(R.string.target_fat),
-                )
-                TargetValue(
-                    value = stringResource(R.string.grams_value, targets.carbsG),
+                MacroText(
                     label = stringResource(R.string.target_carbs),
+                    value = stringResource(
+                        R.string.food_eaten_grams,
+                        formatCount(eaten.carbsG.roundToInt(), locale),
+                        formatCount(targets.carbsG, locale),
+                    ),
+                )
+                MacroText(
+                    label = stringResource(R.string.target_fat),
+                    value = stringResource(
+                        R.string.food_eaten_grams,
+                        formatCount(eaten.fatG.roundToInt(), locale),
+                        formatCount(targets.fatG, locale),
+                    ),
                 )
             }
         }
     }
 }
 
+private fun fraction(eaten: Double, target: Int): Float =
+    if (target <= 0) 0f else (eaten / target).toFloat().coerceIn(0f, 1f)
+
 @Composable
-private fun TargetValue(value: String, label: String) {
+private fun ProgressRow(label: String, value: String, progress: Float) {
+    val spacing = LocalSpacing.current
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.s4)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(text = label, style = MaterialTheme.typography.labelLarge)
+            Text(text = value, style = MaterialTheme.typography.labelLarge)
+        }
+        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+    }
+}
+
+@Composable
+private fun MacroText(label: String, value: String) {
     Column {
-        Text(text = value, style = MaterialTheme.typography.titleLarge)
+        Text(text = value, style = MaterialTheme.typography.titleSmall)
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun MealsCard(eatenByMeal: Map<Meal, Nutrition>, onOpenMeal: (Meal) -> Unit) {
+    val spacing = LocalSpacing.current
+    val locale = LocalLocale.current.platformLocale
+    val timeFormatter = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(vertical = spacing.s8)) {
+            Text(
+                text = stringResource(R.string.meals_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = spacing.s16, vertical = spacing.s8),
+            )
+            Meal.entries.forEach { meal ->
+                val eaten = eatenByMeal[meal]
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenMeal(meal) }
+                        .padding(horizontal = spacing.s16, vertical = spacing.s12),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.s12),
+                ) {
+                    Text(
+                        text = meal.time.format(timeFormatter),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = stringResource(meal.labelRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = eaten?.let { stringResource(R.string.meal_kcal, formatCount(it.kcal.roundToInt(), locale)) }
+                            ?: stringResource(R.string.meal_not_logged),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (eaten == null) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -273,6 +396,60 @@ private fun WorkoutSummaryCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WeightCard(state: TodayUiState, onSave: (Double) -> Unit) {
+    val spacing = LocalSpacing.current
+    val locale = LocalLocale.current.platformLocale
+    var text by rememberSaveable(state.weightTodayKg) {
+        mutableStateOf(state.weightTodayKg?.let { formatKg(it, locale) }.orEmpty())
+    }
+    val parsed = parseKg(text)?.takeIf { it in MIN_BODY_WEIGHT_KG..MAX_BODY_WEIGHT_KG }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(spacing.s16),
+            verticalArrangement = Arrangement.spacedBy(spacing.s8),
+        ) {
+            Text(text = stringResource(R.string.weight_title), style = MaterialTheme.typography.titleMedium)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(spacing.s8),
+            ) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.weight_field)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = { parsed?.let(onSave) },
+                    enabled = parsed != null && parsed != state.weightTodayKg,
+                ) {
+                    Text(stringResource(R.string.action_save))
+                }
+            }
+            state.weekAverageKg?.let {
+                Text(
+                    text = stringResource(R.string.weight_week_average, String.format(locale, "%.1f", it)),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            state.weeklyChangeKg?.let {
+                Text(
+                    text = stringResource(R.string.weight_weekly_change, String.format(locale, "%+.1f", it)),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Text(
+                text = stringResource(R.string.weight_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

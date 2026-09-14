@@ -1,8 +1,12 @@
 package hr.rostanic20.gymbro.ui.today
 
+import hr.rostanic20.gymbro.domain.model.Meal
+import hr.rostanic20.gymbro.domain.model.Nutrition
 import hr.rostanic20.gymbro.domain.model.NutritionPhase
 import hr.rostanic20.gymbro.ui.UserMessage
+import hr.rostanic20.gymbro.util.FakeBodyRepository
 import hr.rostanic20.gymbro.util.FakeDateProvider
+import hr.rostanic20.gymbro.util.FakeFoodRepository
 import hr.rostanic20.gymbro.util.FakeProfileRepository
 import hr.rostanic20.gymbro.util.FakeProgramRepository
 import hr.rostanic20.gymbro.util.FakeSessionRepository
@@ -30,8 +34,12 @@ class TodayViewModelTest {
     private val monday = LocalDate.of(2026, 9, 14)
     private val profiles = FakeProfileRepository()
     private val sessions = FakeSessionRepository()
+    private val foods = FakeFoodRepository()
+    private val body = FakeBodyRepository()
     private val dates = FakeDateProvider(monday)
-    private val viewModel by lazy { TodayViewModel(profiles, FakeProgramRepository(weekProgram), sessions, dates) }
+    private val viewModel by lazy {
+        TodayViewModel(profiles, FakeProgramRepository(weekProgram), sessions, foods, body, dates)
+    }
 
     private fun TestScope.collectState() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
@@ -100,5 +108,35 @@ class TodayViewModelTest {
         collectState()
 
         assertEquals(WorkoutStatus.NOT_STARTED, viewModel.state.value?.workoutStatus)
+    }
+
+    @Test
+    fun `eaten totals add up today's log, per meal`() = runTest {
+        collectState()
+
+        foods.logEstimate(monday, Meal.LUNCH, "Canteen", Nutrition(650.0, 28.0, 70.0, 22.0), nowMillis = 1)
+        foods.logEstimate(monday, Meal.DINNER, "Eggs and toast", Nutrition(415.0, 25.0, 30.0, 20.0), nowMillis = 2)
+        foods.logEstimate(monday.minusDays(1), Meal.DINNER, "Yesterday", Nutrition(999.0, 9.0, 9.0, 9.0), nowMillis = 3)
+
+        val state = viewModel.state.value!!
+        assertEquals(1065.0, state.eaten.kcal, 0.001)
+        assertEquals(53.0, state.eaten.proteinG, 0.001)
+        assertEquals(650.0, state.eatenByMeal.getValue(Meal.LUNCH).kcal, 0.001)
+        assertNull(state.eatenByMeal[Meal.BREAKFAST_SHAKE])
+    }
+
+    @Test
+    fun `a weigh-in shows today's weight, the weekly average and the change`() = runTest {
+        (7L..13L).forEach { body.setWeight(monday.minusDays(it), 70.0) }
+        (1L..6L).forEach { body.setWeight(monday.minusDays(it), 70.3) }
+        collectState()
+
+        viewModel.saveWeight(70.3)
+        advanceUntilIdle()
+
+        val state = viewModel.state.value!!
+        assertEquals(70.3, state.weightTodayKg!!, 0.001)
+        assertEquals(70.3, state.weekAverageKg!!, 0.001)
+        assertEquals(0.3, state.weeklyChangeKg!!, 0.001)
     }
 }

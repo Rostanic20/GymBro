@@ -2,9 +2,16 @@ package hr.rostanic20.gymbro.data
 
 import hr.rostanic20.gymbro.data.local.UserProfile
 import hr.rostanic20.gymbro.domain.model.Alternative
+import hr.rostanic20.gymbro.domain.model.BodyWeight
 import hr.rostanic20.gymbro.domain.model.Exercise
+import hr.rostanic20.gymbro.domain.model.Food
+import hr.rostanic20.gymbro.domain.model.FoodLogEntry
 import hr.rostanic20.gymbro.domain.model.LoadType
 import hr.rostanic20.gymbro.domain.model.LoggedSet
+import hr.rostanic20.gymbro.domain.model.Meal
+import hr.rostanic20.gymbro.domain.model.Nutrition
+import hr.rostanic20.gymbro.domain.model.Recipe
+import hr.rostanic20.gymbro.domain.model.RecipeItem
 import hr.rostanic20.gymbro.domain.model.PlannedExercise
 import hr.rostanic20.gymbro.domain.model.Profile
 import hr.rostanic20.gymbro.domain.model.Progression
@@ -101,6 +108,51 @@ fun SetEntity.toDomain(): LoggedSet = LoggedSet(
 
 fun TopSetRowEntity.toDomain(): TopSet = TopSet(loadKg = load_kg, reps = reps.toInt())
 
+fun FoodEntity.toDomain(): Food = Food(
+    id = id,
+    name = name,
+    per100g = Nutrition(kcal_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g),
+    unitName = unit_name,
+    unitGrams = unit_grams,
+    isFavourite = is_favourite != 0L,
+)
+
+fun List<RecipeRowEntity>.toRecipes(): List<Recipe> =
+    groupBy { it.recipe_id }.values.map { rows ->
+        Recipe(
+            id = rows.first().recipe_id,
+            name = rows.first().recipe_name,
+            items = rows.map { row ->
+                RecipeItem(
+                    food = Food(
+                        id = row.id,
+                        name = row.name,
+                        per100g = Nutrition(row.kcal_per_100g, row.protein_per_100g, row.carbs_per_100g, row.fat_per_100g),
+                        unitName = row.unit_name,
+                        unitGrams = row.unit_grams,
+                        isFavourite = row.is_favourite != 0L,
+                    ),
+                    grams = row.grams,
+                )
+            },
+        )
+    }
+
+fun FoodLogEntity.toDomain(): FoodLogEntry = FoodLogEntry(
+    id = id,
+    date = LocalDate.ofEpochDay(date_epoch_day),
+    meal = Meal.fromSlot(meal_slot.toInt()),
+    foodId = food_id,
+    name = name,
+    grams = grams,
+    nutrition = Nutrition(kcal, protein_g, carbs_g, fat_g),
+)
+
+fun BodyWeightEntity.toDomain(): BodyWeight = BodyWeight(
+    date = LocalDate.ofEpochDay(date_epoch_day),
+    weightKg = weight_kg,
+)
+
 fun UserProfile.toDomain(): Profile = Profile(
     programStart = programStartEpochDay?.let(LocalDate::ofEpochDay),
     maintenanceKcal = maintenanceKcal,
@@ -108,4 +160,5 @@ fun UserProfile.toDomain(): Profile = Profile(
     kcalAdjustment = kcalAdjustment,
     proteinG = proteinG,
     fatG = fatG,
+    mealRemindersEnabled = mealRemindersEnabled,
 )

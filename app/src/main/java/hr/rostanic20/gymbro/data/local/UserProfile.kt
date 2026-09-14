@@ -10,4 +10,5 @@ data class UserProfile(
     val kcalAdjustment: Int = 0,
     val proteinG: Int = 145,
     val fatG: Int = 75,
+    val mealRemindersEnabled: Boolean = false,
 )

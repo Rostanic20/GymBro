@@ -24,7 +24,6 @@
     <string name="target_protein">Protein</string>
     <string name="target_fat">Fat</string>
     <string name="target_carbs">Carbs</string>
-    <string name="grams_value">%1$d g</string>
     <string name="today_travel_title">Travel day</string>
     <string name="today_travel_body">Walk, eat, sleep. Keep both shakes and keep protein up.</string>
     <string name="today_open_workout">Open workout</string>
@@ -158,4 +157,80 @@
     <string name="rest_channel_name">Rest timer</string>
     <string name="rest_done_title">Rest over</string>
     <string name="rest_done_body">Next set of %1$s</string>
+
+    <string name="meal_breakfast_shake">Shake #1</string>
+    <string name="meal_desk_snack">Desk snack</string>
+    <string name="meal_lunch">Lunch</string>
+    <string name="meal_pre_gym">Pre-gym snack</string>
+    <string name="meal_post_gym_shake">Shake #2</string>
+    <string name="meal_dinner">Dinner</string>
+    <string name="meal_tip_breakfast_shake">Milk, oats, banana and whey. Drinkable at an hour you won\'t want to chew.</string>
+    <string name="meal_tip_desk_snack">20 g walnuts and 30 g dates. Two minutes, no fridge.</string>
+    <string name="meal_tip_lunch">Eat the calories, whatever the canteen serves. Protein can be fixed tonight.</string>
+    <string name="meal_tip_pre_gym">Bread, honey and a banana an hour before lifting. Near-zero fat, so it clears in time.</string>
+    <string name="meal_tip_post_gym_shake">Within an hour after training. More whey if lunch was light on protein.</string>
+    <string name="meal_tip_dinner">Eggs and toast. Small, and far enough from bed.</string>
+    <string name="meal_channel_name">Meal reminders</string>
+    <string name="meal_reminder_title">Time for %1$s</string>
+
+    <string name="canteen_title">Canteen plate (estimate)</string>
+    <string name="canteen_estimate">About %1$s g protein · %2$s kcal</string>
+    <string name="canteen_meat">Palm-sized meat or fish</string>
+    <string name="canteen_stew">Stew or goulash with visible meat</string>
+    <string name="canteen_pasta">Pasta or rice, little meat</string>
+    <string name="canteen_soup">Soup and bread, no real meat</string>
+    <string name="canteen_tip_meat">Nothing to fix. Standard 25 g whey in shake #2.</string>
+    <string name="canteen_tip_stew">Nothing, or a tin of tuna if it looked thin.</string>
+    <string name="canteen_tip_pasta">Whey in the shaker now, and 40 g in shake #2.</string>
+    <string name="canteen_tip_soup">Whey now, 40 g in shake #2, and 4 eggs at dinner.</string>
+
+    <string name="food_eaten_kcal">%1$s / %2$s kcal</string>
+    <string name="food_eaten_grams">%1$s / %2$s g</string>
+    <string name="meals_title">Meals</string>
+    <string name="meal_kcal">%1$s kcal</string>
+    <string name="meal_not_logged">Not logged</string>
+    <string name="protein_grams">%1$s g protein</string>
+    <string name="weight_title">Weight</string>
+    <string name="weight_field">Today (kg)</string>
+    <string name="weight_week_average">7-day average: %1$s kg</string>
+    <string name="weight_weekly_change">Change vs last week: %1$s kg</string>
+    <string name="weight_hint">Same conditions every morning. Judge the weekly average, not the day.</string>
+
+    <string name="meal_subtitle">%1$s · %2$s</string>
+    <string name="meal_total">%1$s kcal · %2$s g protein · %3$s g carbs · %4$s g fat</string>
+    <string name="meal_entry_nutrition">%1$s kcal · %2$s g protein</string>
+    <string name="meal_entry_with_grams">%1$s g · %2$s</string>
+    <string name="delete_entry">Delete entry</string>
+    <string name="repeat_yesterday">Repeat yesterday</string>
+    <string name="add_food">Add food</string>
+    <string name="recipes_title">Recipes</string>
+    <string name="recipe_planned">Planned</string>
+    <string name="recipe_item">%1$s %2$s g</string>
+    <string name="log_food">Log</string>
+    <string name="food_picker_title">Add food</string>
+    <string name="food_search">Search</string>
+    <string name="food_per_100g">%1$s kcal · %2$s g protein per 100 g</string>
+    <string name="food_grams">Grams</string>
+    <string name="food_unit_chip">1 %1$s (%2$s g)</string>
+    <string name="food_pick_another">Pick another</string>
+
+    <string name="foods_title">Food list</string>
+    <string name="foods_add">Add</string>
+    <string name="favourite_add">Mark as favourite</string>
+    <string name="favourite_remove">Remove favourite</string>
+    <string name="food_edit_title">Edit food</string>
+    <string name="food_new_title">New food</string>
+    <string name="food_name">Name</string>
+    <string name="food_kcal">kcal per 100 g</string>
+    <string name="food_protein">Protein per 100 g</string>
+    <string name="food_carbs">Carbs per 100 g</string>
+    <string name="food_fat">Fat per 100 g</string>
+    <string name="food_unit_name">Unit, e.g. scoop</string>
+    <string name="food_unit_grams">Grams per unit</string>
+    <string name="food_invalid">Check the values: macros per 100 g can\'t add up to more than 100 g, and a unit needs its grams.</string>
+
+    <string name="settings_meals_title">Meals</string>
+    <string name="settings_meal_reminders">Meal reminders</string>
+    <string name="settings_meal_reminders_note">Mon–Thu all six meals, Fri–Sun the two shakes. Eat by the clock, not by appetite.</string>
+    <string name="settings_open_foods">Food list</string>
 </resources>

@@ -23,4 +23,8 @@ class ProfileRepositoryImpl(
     override suspend fun setTargets(maintenanceKcal: Int, surplusKcal: Int, proteinG: Int, fatG: Int) {
         local.setTargets(maintenanceKcal, surplusKcal, proteinG, fatG)
     }
+
+    override suspend fun setMealReminders(enabled: Boolean) {
+        local.setMealReminders(enabled)
+    }
 }
