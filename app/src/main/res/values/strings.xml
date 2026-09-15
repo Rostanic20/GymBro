@@ -299,7 +299,7 @@
     <string name="backup_restore_ready_body">GymBro restarts now to finish restoring.</string>
     <string name="backup_restart">Restart</string>
     <string name="backup_weekly">Weekly backup</string>
-    <string name="backup_weekly_off">Pick a folder, ideally one a cloud app syncs, and GymBro saves a backup there every week.</string>
+    <string name="backup_weekly_off">Pick a folder on the phone and GymBro saves a backup there every week.</string>
     <string name="backup_weekly_folder">Saved to %1$s every week. The four newest are kept.</string>
     <string name="backup_last_weekly">Last weekly backup: %1$s</string>
     <string name="backup_no_weekly_yet">No weekly backup yet</string>
