@@ -5,6 +5,7 @@ import hr.rostanic20.gymbro.db.Food
 import hr.rostanic20.gymbro.db.Food_log
 import hr.rostanic20.gymbro.db.Progress_photo
 import hr.rostanic20.gymbro.db.SelectAlternatives
+import hr.rostanic20.gymbro.db.SelectFinishedSessions
 import hr.rostanic20.gymbro.db.SelectFirstSetsForExercise
 import hr.rostanic20.gymbro.db.SelectProgram
 import hr.rostanic20.gymbro.db.SelectRecipeItems
@@ -18,6 +19,7 @@ typealias AlternativeRowEntity = SelectAlternatives
 typealias SessionEntity = Workout_session
 typealias SetEntity = Set_entry
 typealias TopSetRowEntity = SelectFirstSetsForExercise
+typealias SessionSummaryEntity = SelectFinishedSessions
 typealias TopSetHistoryEntity = SelectTopSetHistory
 typealias FoodEntity = Food
 typealias RecipeRowEntity = SelectRecipeItems

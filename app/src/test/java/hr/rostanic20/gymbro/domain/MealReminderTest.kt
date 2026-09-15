@@ -1,7 +1,9 @@
 package hr.rostanic20.gymbro.domain
 
 import hr.rostanic20.gymbro.domain.model.Meal
+import hr.rostanic20.gymbro.domain.model.MealSettings
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
@@ -40,6 +42,38 @@ class MealReminderTest {
 
         assertEquals(Meal.POST_GYM_SHAKE, nextMealReminder(friday.atTime(8, 0))?.meal)
         assertEquals(LocalTime.of(18, 45), nextMealReminder(friday.atTime(8, 0))?.at?.toLocalTime())
+    }
+
+    @Test
+    fun `a moved meal time is used for the reminder`() {
+        val settings = MealSettings(times = mapOf(Meal.BREAKFAST_SHAKE to LocalTime.of(5, 45)))
+
+        assertEquals(
+            MealReminder(Meal.BREAKFAST_SHAKE, monday.atTime(5, 45)),
+            nextMealReminder(monday.atTime(5, 0), settings),
+        )
+    }
+
+    @Test
+    fun `a meal turned off is skipped`() {
+        val settings = MealSettings(disabled = setOf(Meal.BREAKFAST_SHAKE))
+
+        assertEquals(Meal.DESK_SNACK, nextMealReminder(monday.atTime(6, 30), settings)?.meal)
+    }
+
+    @Test
+    fun `moving a meal later reorders the day`() {
+        val settings = MealSettings(times = mapOf(Meal.DESK_SNACK to LocalTime.of(13, 0)))
+
+        assertEquals(Meal.LUNCH, nextMealReminder(monday.atTime(11, 0), settings)?.meal)
+        assertEquals(Meal.DESK_SNACK, nextMealReminder(monday.atTime(12, 30), settings)?.meal)
+    }
+
+    @Test
+    fun `every meal off means no reminder at all`() {
+        val settings = MealSettings(disabled = Meal.entries.toSet())
+
+        assertNull(nextMealReminder(monday.atTime(6, 30), settings))
     }
 
     @Test

@@ -9,6 +9,7 @@ import hr.rostanic20.gymbro.domain.model.RecipeItem
 import hr.rostanic20.gymbro.ui.UserMessage
 import hr.rostanic20.gymbro.util.FakeClock
 import hr.rostanic20.gymbro.util.FakeFoodRepository
+import hr.rostanic20.gymbro.util.FakeMealSettingsRepository
 import hr.rostanic20.gymbro.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -39,7 +40,7 @@ class MealViewModelTest {
     private val clock = FakeClock(1_000)
 
     private fun TestScope.open(meal: Meal): MealViewModel {
-        val viewModel = MealViewModel(monday.toEpochDay(), meal.slot, foods, clock)
+        val viewModel = MealViewModel(monday.toEpochDay(), meal.slot, foods, FakeMealSettingsRepository(), clock)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
         return viewModel
     }

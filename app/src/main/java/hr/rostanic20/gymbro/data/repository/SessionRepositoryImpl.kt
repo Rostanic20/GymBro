@@ -4,6 +4,7 @@ import hr.rostanic20.gymbro.core.DispatcherProvider
 import hr.rostanic20.gymbro.data.local.SessionLocalDataSource
 import hr.rostanic20.gymbro.data.toDomain
 import hr.rostanic20.gymbro.domain.model.LoggedSet
+import hr.rostanic20.gymbro.domain.model.SessionSummary
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
 import hr.rostanic20.gymbro.domain.model.TopSetPoint
@@ -41,6 +42,12 @@ class SessionRepositoryImpl(
             .map { rows ->
                 rows.reversed().map { TopSetPoint(LocalDate.ofEpochDay(it.date_epoch_day), it.load_kg, it.reps.toInt()) }
             }
+            .distinctUntilChanged()
+            .flowOn(dispatchers.io)
+
+    override fun recentSessions(limit: Int): Flow<List<SessionSummary>> =
+        local.finishedSessions(limit.toLong())
+            .map { rows -> rows.map { it.toDomain() } }
             .distinctUntilChanged()
             .flowOn(dispatchers.io)
 

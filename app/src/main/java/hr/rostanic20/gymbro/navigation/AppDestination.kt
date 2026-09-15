@@ -27,6 +27,9 @@ sealed interface AppDestination : NavKey {
     data class Meal(val epochDay: Long, val slot: Int) : AppDestination
 
     @Serializable
+    data object History : AppDestination
+
+    @Serializable
     data object Foods : AppDestination
 
     @Serializable

@@ -133,6 +133,25 @@ class SessionRepositoryTest {
     }
 
     @Test
+    fun `the history lists finished sessions newest first with their set counts`() = runTest {
+        val repository = repository()
+        val first = repository.startSession(1, monday, isDeload = false, nowMillis = 1_000)
+        repository.logBench(first, 60.0, 8, 8, 7)
+        repository.finishSession(first, 1_500)
+        val second = repository.startSession(2, monday.plusDays(1), isDeload = true, nowMillis = 2_000)
+        repository.logBench(second, 60.0, 5)
+        repository.finishSession(second, 2_500)
+        val open = repository.startSession(3, monday.plusDays(2), isDeload = false, nowMillis = 3_000)
+        repository.logBench(open, 60.0, 5)
+
+        val history = repository.recentSessions(limit = 10).first()
+
+        assertEquals(listOf(second, first), history.map { it.id })
+        assertEquals(listOf(1, 3), history.map { it.setCount })
+        assertTrue(history.first().isDeload)
+    }
+
+    @Test
     fun `discarding removes the session and its sets`() = runTest {
         val repository = repository()
         val id = repository.startSession(1, monday, isDeload = false, nowMillis = 1_000)

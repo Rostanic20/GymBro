@@ -7,19 +7,24 @@ import android.content.Context
 import android.content.Intent
 import hr.rostanic20.gymbro.core.MealReminderScheduler
 import hr.rostanic20.gymbro.domain.nextMealReminder
+import hr.rostanic20.gymbro.domain.repository.MealSettingsRepository
+import kotlinx.coroutines.flow.first
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-class AlarmMealReminderScheduler(private val context: Context) : MealReminderScheduler {
+class AlarmMealReminderScheduler(
+    private val context: Context,
+    private val mealSettings: MealSettingsRepository,
+) : MealReminderScheduler {
 
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
     // USE_EXACT_ALARM is granted at install on API 33+; lint only knows SCHEDULE_EXACT_ALARM.
     @SuppressLint("MissingPermission")
-    override fun reschedule(enabled: Boolean) {
+    override suspend fun reschedule(enabled: Boolean) {
         alarmManager.cancel(pendingIntent(mealSlot = NO_MEAL))
         if (!enabled || !alarmManager.canScheduleExactAlarms()) return
-        val next = nextMealReminder(LocalDateTime.now()) ?: return
+        val next = nextMealReminder(LocalDateTime.now(), mealSettings.settings().first()) ?: return
         val triggerAtMillis = next.at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent(next.meal.slot))
     }

@@ -129,7 +129,7 @@ private fun MealContent(state: MealUiState, onBack: () -> Unit, actions: MealAct
                 Text(
                     text = stringResource(
                         R.string.meal_subtitle,
-                        state.meal.time.format(timeFormatter),
+                        state.time.format(timeFormatter),
                         state.date.format(dayFormatter),
                     ),
                     style = MaterialTheme.typography.bodySmall,

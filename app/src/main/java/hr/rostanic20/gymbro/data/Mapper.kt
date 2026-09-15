@@ -17,6 +17,7 @@ import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.domain.model.Progression
 import hr.rostanic20.gymbro.domain.model.Recipe
 import hr.rostanic20.gymbro.domain.model.RecipeItem
+import hr.rostanic20.gymbro.domain.model.SessionSummary
 import hr.rostanic20.gymbro.domain.model.TopSet
 import hr.rostanic20.gymbro.domain.model.WaistMeasurement
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
@@ -98,6 +99,15 @@ fun SessionEntity.toDomain(): WorkoutSession = WorkoutSession(
     isDeload = is_deload != 0L,
     note = note,
     restEndsAtMillis = rest_ends_at,
+)
+
+fun SessionSummaryEntity.toDomain(): SessionSummary = SessionSummary(
+    id = id,
+    dayId = day_id,
+    date = LocalDate.ofEpochDay(date_epoch_day),
+    isDeload = is_deload != 0L,
+    note = note,
+    setCount = set_count.toInt(),
 )
 
 fun SetEntity.toDomain(): LoggedSet = LoggedSet(

@@ -11,15 +11,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +57,7 @@ import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import hr.rostanic20.gymbro.ui.workout.WeekBanner
 import hr.rostanic20.gymbro.ui.workout.showsWeekBanner
 import org.koin.compose.viewmodel.koinViewModel
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.math.roundToInt
@@ -64,6 +68,7 @@ private const val MAX_BODY_WEIGHT_KG = 300.0
 @Composable
 fun TodayScreen(
     onOpenWorkout: (dayId: Long) -> Unit,
+    onOpenSession: (sessionId: Long) -> Unit,
     onOpenMeal: (epochDay: Long, slot: Int) -> Unit,
     viewModel: TodayViewModel = koinViewModel(),
 ) {
@@ -76,8 +81,12 @@ fun TodayScreen(
             state = it,
             onStartProgram = viewModel::startProgram,
             onOpenWorkout = onOpenWorkout,
+            onOpenSession = onOpenSession,
             onOpenMeal = onOpenMeal,
             onSaveWeight = viewModel::saveWeight,
+            onPreviousDay = viewModel::showPreviousDay,
+            onNextDay = viewModel::showNextDay,
+            onToday = viewModel::showToday,
             healthCard = { HealthCard() },
         )
     }
@@ -90,6 +99,10 @@ internal fun TodayContent(
     onOpenWorkout: (dayId: Long) -> Unit,
     onOpenMeal: (epochDay: Long, slot: Int) -> Unit,
     onSaveWeight: (Double) -> Unit,
+    onOpenSession: (sessionId: Long) -> Unit = {},
+    onPreviousDay: () -> Unit = {},
+    onNextDay: () -> Unit = {},
+    onToday: () -> Unit = {},
     healthCard: @Composable () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
@@ -99,7 +112,14 @@ internal fun TodayContent(
         contentPadding = PaddingValues(spacing.s16),
         verticalArrangement = Arrangement.spacedBy(spacing.s16),
     ) {
-        item { TodayHeader(state = state) }
+        item {
+            TodayHeader(
+                state = state,
+                onPreviousDay = onPreviousDay,
+                onNextDay = onNextDay,
+                onToday = onToday,
+            )
+        }
         if (state.programStart == null) {
             item { NotStartedCard(state = state, onStartProgram = onStartProgram) }
         }
@@ -109,12 +129,22 @@ internal fun TodayContent(
         item { NutritionCard(targets = state.targets, eaten = state.eaten) }
         item {
             MealsCard(
+                meals = state.mealSettings.activeMeals,
+                timeFor = state.mealSettings::timeFor,
                 eatenByMeal = state.eatenByMeal,
                 onOpenMeal = { onOpenMeal(state.date.toEpochDay(), it.slot) },
             )
         }
         item {
-            WorkoutSummaryCard(workout = state.workout, status = state.workoutStatus, onOpenWorkout = onOpenWorkout)
+            WorkoutSummaryCard(
+                workout = state.workout,
+                status = state.workoutStatus,
+                onOpen = when {
+                    state.isToday -> state.workout?.let { { onOpenWorkout(it.id) } }
+                    state.loggedSessionId != null -> ({ onOpenSession(state.loggedSessionId) })
+                    else -> null
+                },
+            )
         }
         item { WeightCard(state = state, onSave = onSaveWeight) }
         item { healthCard() }
@@ -122,25 +152,56 @@ internal fun TodayContent(
 }
 
 @Composable
-private fun TodayHeader(state: TodayUiState) {
+private fun TodayHeader(
+    state: TodayUiState,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
+    onToday: () -> Unit,
+) {
     val formatter = rememberDayFormatter()
     val label = when {
         state.week != null -> stringResource(R.string.today_week, state.week)
         state.programStart != null -> stringResource(R.string.today_starts_on, state.programStart.format(formatter))
         else -> null
     }
-    Column {
-        label?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onPreviousDay) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                contentDescription = stringResource(R.string.day_previous),
             )
         }
-        Text(
-            text = state.date.format(formatter),
-            style = MaterialTheme.typography.headlineMedium,
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            label?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Text(
+                text = state.date.format(formatter),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        }
+        if (state.isToday) {
+            IconButton(onClick = onNextDay, enabled = false) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.day_next),
+                )
+            }
+        } else {
+            TextButton(onClick = onToday) {
+                Text(stringResource(R.string.today_badge))
+            }
+            IconButton(onClick = onNextDay) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.day_next),
+                )
+            }
+        }
     }
 }
 
@@ -274,7 +335,12 @@ private fun MacroText(label: String, value: String) {
 }
 
 @Composable
-private fun MealsCard(eatenByMeal: Map<Meal, Nutrition>, onOpenMeal: (Meal) -> Unit) {
+private fun MealsCard(
+    meals: List<Meal>,
+    timeFor: (Meal) -> LocalTime,
+    eatenByMeal: Map<Meal, Nutrition>,
+    onOpenMeal: (Meal) -> Unit,
+) {
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
     val timeFormatter = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
@@ -285,7 +351,7 @@ private fun MealsCard(eatenByMeal: Map<Meal, Nutrition>, onOpenMeal: (Meal) -> U
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = spacing.s16, vertical = spacing.s8),
             )
-            Meal.entries.forEach { meal ->
+            meals.forEach { meal ->
                 val eaten = eatenByMeal[meal]
                 Row(
                     modifier = Modifier
@@ -296,7 +362,7 @@ private fun MealsCard(eatenByMeal: Map<Meal, Nutrition>, onOpenMeal: (Meal) -> U
                     horizontalArrangement = Arrangement.spacedBy(spacing.s12),
                 ) {
                     Text(
-                        text = meal.time.format(timeFormatter),
+                        text = timeFor(meal).format(timeFormatter),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -325,7 +391,7 @@ private fun MealsCard(eatenByMeal: Map<Meal, Nutrition>, onOpenMeal: (Meal) -> U
 private fun WorkoutSummaryCard(
     workout: WorkoutDay?,
     status: WorkoutStatus,
-    onOpenWorkout: (dayId: Long) -> Unit,
+    onOpen: (() -> Unit)?,
 ) {
     val spacing = LocalSpacing.current
     if (workout == null) {
@@ -346,7 +412,11 @@ private fun WorkoutSummaryCard(
         }
         return
     }
-    Card(onClick = { onOpenWorkout(workout.id) }, modifier = Modifier.fillMaxWidth()) {
+    Card(
+        onClick = onOpen ?: {},
+        enabled = onOpen != null,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         Column(
             modifier = Modifier.padding(spacing.s16),
             verticalArrangement = Arrangement.spacedBy(spacing.s8),
@@ -373,10 +443,12 @@ private fun WorkoutSummaryCard(
                     )
                     WorkoutStatus.NOT_STARTED -> Unit
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.today_open_workout),
-                )
+                if (onOpen != null) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                        contentDescription = stringResource(R.string.today_open_workout),
+                    )
+                }
             }
             Text(
                 text = pluralStringResource(R.plurals.working_sets, workout.workingSets, workout.workingSets),
@@ -426,7 +498,9 @@ private fun WeightCard(state: TodayUiState, onSave: (Double) -> Unit) {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text(stringResource(R.string.weight_field)) },
+                    label = {
+                        Text(stringResource(if (state.isToday) R.string.weight_field else R.string.weight_field_past))
+                    },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),

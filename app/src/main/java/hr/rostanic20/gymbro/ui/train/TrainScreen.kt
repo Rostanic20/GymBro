@@ -21,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,18 +60,21 @@ import org.koin.compose.viewmodel.koinViewModel
 import java.time.format.TextStyle
 
 @Composable
-fun TrainScreen(viewModel: TrainViewModel = koinViewModel()) {
+fun TrainScreen(onOpenHistory: () -> Unit, viewModel: TrainViewModel = koinViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
-    state?.let { TrainContent(state = it, onSaveLoads = viewModel::updateLoadSettings) }
+    state?.let {
+        TrainContent(state = it, onSaveLoads = viewModel::updateLoadSettings, onOpenHistory = onOpenHistory)
+    }
 }
 
 @Composable
 private fun TrainContent(
     state: TrainUiState,
     onSaveLoads: (exerciseId: Long, settings: LoadSettings) -> Unit,
+    onOpenHistory: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     val listState = rememberLazyListState()
@@ -101,7 +105,7 @@ private fun TrainContent(
         if (week != null && showBanner) {
             item { WeekBanner(week = week) }
         }
-        item { LiftHistoryCard(history = state.liftHistory) }
+        item { LiftHistoryCard(history = state.liftHistory, onOpenHistory = onOpenHistory) }
         items(state.days, key = { it.id }) { day ->
             var expanded by rememberSaveable { mutableStateOf(day.id == state.defaultExpandedDayId) }
             WorkoutDayCard(
@@ -192,7 +196,7 @@ private fun WorkoutDayCard(
 }
 
 @Composable
-private fun LiftHistoryCard(history: List<LiftHistory>) {
+private fun LiftHistoryCard(history: List<LiftHistory>, onOpenHistory: () -> Unit) {
     val spacing = LocalSpacing.current
     val lineColor = MaterialTheme.colorScheme.primary
     val logged = history.filter { it.points.isNotEmpty() }
@@ -245,6 +249,9 @@ private fun LiftHistoryCard(history: List<LiftHistory>) {
                         )
                     }
                 }
+            }
+            TextButton(onClick = onOpenHistory) {
+                Text(stringResource(R.string.history_open))
             }
         }
     }

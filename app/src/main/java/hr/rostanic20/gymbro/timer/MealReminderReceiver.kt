@@ -15,17 +15,27 @@ import hr.rostanic20.gymbro.core.MealReminderScheduler
 import hr.rostanic20.gymbro.domain.model.Meal
 import hr.rostanic20.gymbro.ui.common.labelRes
 import hr.rostanic20.gymbro.ui.common.tipRes
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class MealReminderReceiver : BroadcastReceiver(), KoinComponent {
 
     private val scheduler: MealReminderScheduler by inject()
+    private val appScope: CoroutineScope by inject()
 
     override fun onReceive(context: Context, intent: Intent) {
         val slot = intent.getIntExtra(EXTRA_MEAL_SLOT, -1)
         Meal.entries.firstOrNull { it.slot == slot }?.let { notify(context, it) }
-        scheduler.reschedule(enabled = true)
+        val pending = goAsync()
+        appScope.launch {
+            try {
+                scheduler.reschedule(enabled = true)
+            } finally {
+                pending.finish()
+            }
+        }
     }
 
     private fun notify(context: Context, meal: Meal) {

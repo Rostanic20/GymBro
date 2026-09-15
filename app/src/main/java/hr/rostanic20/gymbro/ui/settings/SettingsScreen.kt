@@ -26,10 +26,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,23 +46,31 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.MAINTENANCE_WEEKS
+import hr.rostanic20.gymbro.domain.model.Meal
+import hr.rostanic20.gymbro.domain.model.MealSettings
 import hr.rostanic20.gymbro.domain.model.Profile
 import hr.rostanic20.gymbro.domain.nutritionTargets
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
 import hr.rostanic20.gymbro.ui.common.formatCount
+import hr.rostanic20.gymbro.ui.common.labelRes
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.toUtcMillis
 import hr.rostanic20.gymbro.ui.common.utcMillisToLocalDate
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import org.koin.compose.viewmodel.koinViewModel
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 data class SettingsActions(
     val changeStart: (LocalDate) -> Unit,
     val reset: () -> Unit,
     val saveTargets: (Targets) -> Unit,
     val setMealReminders: (Boolean) -> Unit,
+    val setMealTime: (Meal, LocalTime) -> Unit,
+    val setMealEnabled: (Meal, Boolean) -> Unit,
     val openFoods: () -> Unit,
 )
 
@@ -69,17 +80,21 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val profile by viewModel.profile.collectAsStateWithLifecycle()
+    val mealSettings by viewModel.mealSettings.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
     profile?.let {
         SettingsContent(
             profile = it,
+            mealSettings = mealSettings,
             actions = SettingsActions(
                 changeStart = viewModel::changeProgramStart,
                 reset = viewModel::resetProgram,
                 saveTargets = viewModel::saveTargets,
                 setMealReminders = viewModel::setMealReminders,
+                setMealTime = viewModel::setMealTime,
+                setMealEnabled = viewModel::setMealEnabled,
                 openFoods = onOpenFoods,
             ),
             backupCard = { BackupCard() },
@@ -91,6 +106,7 @@ fun SettingsScreen(
 internal fun SettingsContent(
     profile: Profile,
     actions: SettingsActions,
+    mealSettings: MealSettings = MealSettings(),
     backupCard: @Composable () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
@@ -108,8 +124,8 @@ internal fun SettingsContent(
         ProgramCard(programStart = profile.programStart, onChangeStart = actions.changeStart, onReset = actions.reset)
         MealsCard(
             remindersEnabled = profile.mealRemindersEnabled,
-            onRemindersChange = actions.setMealReminders,
-            onOpenFoods = actions.openFoods,
+            mealSettings = mealSettings,
+            actions = actions,
         )
         TargetsCard(profile = profile, onSave = actions.saveTargets)
         backupCard()
@@ -226,14 +242,16 @@ private fun StartDatePickerDialog(
 @Composable
 private fun MealsCard(
     remindersEnabled: Boolean,
-    onRemindersChange: (Boolean) -> Unit,
-    onOpenFoods: () -> Unit,
+    mealSettings: MealSettings,
+    actions: SettingsActions,
 ) {
     val spacing = LocalSpacing.current
     val context = LocalContext.current
+    val onRemindersChange = actions.setMealReminders
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) onRemindersChange(true)
     }
+    var editing by rememberSaveable { mutableStateOf<Meal?>(null) }
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(spacing.s16),
@@ -267,11 +285,85 @@ private fun MealsCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedButton(onClick = onOpenFoods) {
+            mealSettings.orderedMeals.forEach { meal ->
+                MealRow(
+                    meal = meal,
+                    time = mealSettings.timeFor(meal),
+                    enabled = mealSettings.isEnabled(meal),
+                    onEditTime = { editing = meal },
+                    onEnabledChange = { actions.setMealEnabled(meal, it) },
+                )
+            }
+            OutlinedButton(onClick = actions.openFoods) {
                 Text(stringResource(R.string.settings_open_foods))
             }
         }
     }
+    editing?.let { meal ->
+        MealTimeDialog(
+            meal = meal,
+            time = mealSettings.timeFor(meal),
+            onDismiss = { editing = null },
+            onConfirm = {
+                editing = null
+                actions.setMealTime(meal, it)
+            },
+        )
+    }
+}
+
+@Composable
+private fun MealRow(
+    meal: Meal,
+    time: LocalTime,
+    enabled: Boolean,
+    onEditTime: () -> Unit,
+    onEnabledChange: (Boolean) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    val locale = LocalLocale.current.platformLocale
+    val formatter = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.s8),
+    ) {
+        Text(
+            text = stringResource(meal.labelRes),
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onEditTime, enabled = enabled) {
+            Text(time.format(formatter))
+        }
+        Switch(checked = enabled, onCheckedChange = onEnabledChange)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MealTimeDialog(
+    meal: Meal,
+    time: LocalTime,
+    onDismiss: () -> Unit,
+    onConfirm: (LocalTime) -> Unit,
+) {
+    val state = rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(meal.labelRes)) },
+        text = { TimePicker(state = state) },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(LocalTime.of(state.hour, state.minute)) }) {
+                Text(stringResource(R.string.action_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
 }
 
 @Composable
