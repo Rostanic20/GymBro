@@ -6,7 +6,7 @@
     android:viewportHeight="108">
     <group android:translateY="2">
         <path
-            android:fillColor="#B9C0FF"
+            android:fillColor="#FF8A50"
             android:pathData="M45,50h18v8h-18z" />
         <path
             android:fillColor="#FFFFFF"
@@ -15,10 +15,10 @@
             android:fillColor="#FFFFFF"
             android:pathData="M63,38h11v32h-11z" />
         <path
-            android:fillColor="#B9C0FF"
+            android:fillColor="#FF8A50"
             android:pathData="M26,44h8v20h-8z" />
         <path
-            android:fillColor="#B9C0FF"
+            android:fillColor="#FF8A50"
             android:pathData="M74,44h8v20h-8z" />
     </group>
 </vector>

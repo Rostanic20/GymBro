@@ -6,21 +6,19 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-private val Iron = Color(0xFF3F4CD8)
-private val IronLight = Color(0xFFB9C0FF)
-private val IronContainer = Color(0xFFE1E2FF)
-private val IronContainerDark = Color(0xFF2A35A8)
-private val Chalk = Color(0xFFF7F7FB)
-private val Graphite = Color(0xFF12131A)
-private val GraphiteSurface = Color(0xFF1B1D26)
-private val Steel = Color(0xFF5A6070)
-private val SteelLight = Color(0xFFC3C6D4)
-private val Lime = Color(0xFF2E9E5B)
-private val LimeLight = Color(0xFF7BDCA2)
-private val Amber = Color(0xFFB8761B)
-private val AmberLight = Color(0xFFF2B75C)
-private val Rust = Color(0xFFB3261E)
-private val RustLight = Color(0xFFFFB4AB)
+private val Ember = Color(0xFFC1501B)
+private val EmberBright = Color(0xFFFF8A50)
+private val EmberContainerLight = Color(0xFFFFDBCD)
+private val EmberContainerDark = Color(0xFF8A3A12)
+private val OnEmberContainerLight = Color(0xFF3A0C00)
+private val OnEmberContainerDark = Color(0xFFFFDBCD)
+
+private val Ash = Color(0xFF77574A)
+private val AshBright = Color(0xFFE7BDAB)
+private val Moss = Color(0xFF2E7D4F)
+private val MossBright = Color(0xFF7BDCA2)
+private val Blood = Color(0xFFB3261E)
+private val BloodBright = Color(0xFFFFB4AB)
 
 @Immutable
 data class StatusColors(
@@ -31,77 +29,98 @@ data class StatusColors(
     val onAttentionContainer: Color,
 )
 
-val LocalStatusColors = staticCompositionLocalOf {
-    StatusColors(
-        onTrack = Lime,
-        over = Amber,
-        attention = Amber,
-        attentionContainer = Color(0xFFFFE2B8),
-        onAttentionContainer = Color(0xFF2B1700),
-    )
-}
-
 internal val LightStatusColors = StatusColors(
-    onTrack = Lime,
-    over = Amber,
-    attention = Amber,
-    attentionContainer = Color(0xFFFFE2B8),
-    onAttentionContainer = Color(0xFF2B1700),
+    onTrack = Moss,
+    over = Blood,
+    attention = Ember,
+    attentionContainer = EmberContainerLight,
+    onAttentionContainer = OnEmberContainerLight,
 )
 
 internal val DarkStatusColors = StatusColors(
-    onTrack = LimeLight,
-    over = AmberLight,
-    attention = AmberLight,
-    attentionContainer = Color(0xFF4A3006),
-    onAttentionContainer = Color(0xFFFFE2B8),
+    onTrack = MossBright,
+    over = BloodBright,
+    attention = EmberBright,
+    attentionContainer = EmberContainerDark,
+    onAttentionContainer = OnEmberContainerDark,
 )
 
+val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
+
 internal val GymBroLightColors = lightColorScheme(
-    primary = Iron,
+    primary = Ember,
     onPrimary = Color.White,
-    primaryContainer = IronContainer,
-    onPrimaryContainer = Color(0xFF0A1160),
-    secondary = Steel,
+    primaryContainer = EmberContainerLight,
+    onPrimaryContainer = OnEmberContainerLight,
+    inversePrimary = EmberBright,
+    secondary = Ash,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE2E4EE),
-    onSecondaryContainer = Color(0xFF181B24),
-    tertiary = Lime,
+    secondaryContainer = Color(0xFFFFDBCD),
+    onSecondaryContainer = Color(0xFF2C160D),
+    tertiary = Moss,
     onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFD4F4E0),
-    onTertiaryContainer = Color(0xFF00210F),
-    error = Rust,
+    tertiaryContainer = Color(0xFFB7F0CC),
+    onTertiaryContainer = Color(0xFF002110),
+    error = Blood,
     onError = Color.White,
-    background = Chalk,
-    onBackground = Graphite,
-    surface = Chalk,
-    onSurface = Graphite,
-    surfaceVariant = Color(0xFFE4E5EF),
-    onSurfaceVariant = Color(0xFF45485A),
-    outline = Color(0xFF767988),
+    errorContainer = Color(0xFFF9DEDC),
+    onErrorContainer = Color(0xFF410E0B),
+    background = Color(0xFFFBF8F6),
+    onBackground = Color(0xFF201A17),
+    surface = Color(0xFFFBF8F6),
+    onSurface = Color(0xFF201A17),
+    surfaceVariant = Color(0xFFF0E0D9),
+    onSurfaceVariant = Color(0xFF52443D),
+    surfaceTint = Ember,
+    surfaceBright = Color(0xFFFFFFFF),
+    surfaceDim = Color(0xFFE4DAD4),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF6EFEB),
+    surfaceContainer = Color(0xFFF1E9E4),
+    surfaceContainerHigh = Color(0xFFEBE2DD),
+    surfaceContainerHighest = Color(0xFFE5DBD5),
+    inverseSurface = Color(0xFF362F2B),
+    inverseOnSurface = Color(0xFFFBEEE9),
+    outline = Color(0xFF857369),
+    outlineVariant = Color(0xFFD8C2B8),
+    scrim = Color.Black,
 )
 
 internal val GymBroDarkColors = darkColorScheme(
-    primary = IronLight,
-    onPrimary = Color(0xFF0A1160),
-    primaryContainer = IronContainerDark,
-    onPrimaryContainer = IronContainer,
-    secondary = SteelLight,
-    onSecondary = Color(0xFF2A2E3B),
-    secondaryContainer = Color(0xFF3A3F4F),
-    onSecondaryContainer = Color(0xFFE2E4EE),
-    tertiary = LimeLight,
+    primary = EmberBright,
+    onPrimary = Color(0xFF5A1B00),
+    primaryContainer = EmberContainerDark,
+    onPrimaryContainer = OnEmberContainerDark,
+    inversePrimary = Ember,
+    secondary = AshBright,
+    onSecondary = Color(0xFF442A1E),
+    secondaryContainer = Color(0xFF5D4033),
+    onSecondaryContainer = Color(0xFFFFDBCD),
+    tertiary = MossBright,
     onTertiary = Color(0xFF00391C),
-    tertiaryContainer = Color(0xFF14522F),
-    onTertiaryContainer = Color(0xFFD4F4E0),
-    error = RustLight,
+    tertiaryContainer = Color(0xFF15522F),
+    onTertiaryContainer = Color(0xFFB7F0CC),
+    error = BloodBright,
     onError = Color(0xFF690005),
-    background = Graphite,
-    onBackground = Color(0xFFE4E5EF),
-    surface = Graphite,
-    onSurface = Color(0xFFE4E5EF),
-    surfaceContainer = GraphiteSurface,
-    surfaceVariant = Color(0xFF2B2E3A),
-    onSurfaceVariant = Color(0xFFC3C6D4),
-    outline = Color(0xFF8C8FA0),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFF9DEDC),
+    background = Color(0xFF14110F),
+    onBackground = Color(0xFFF2E9E4),
+    surface = Color(0xFF14110F),
+    onSurface = Color(0xFFF2E9E4),
+    surfaceVariant = Color(0xFF453A34),
+    onSurfaceVariant = Color(0xFFD5C7BF),
+    surfaceTint = EmberBright,
+    surfaceBright = Color(0xFF3B3532),
+    surfaceDim = Color(0xFF14110F),
+    surfaceContainerLowest = Color(0xFF0E0B0A),
+    surfaceContainerLow = Color(0xFF1C1816),
+    surfaceContainer = Color(0xFF221D1A),
+    surfaceContainerHigh = Color(0xFF2C2724),
+    surfaceContainerHighest = Color(0xFF37312E),
+    inverseSurface = Color(0xFFF2E9E4),
+    inverseOnSurface = Color(0xFF362F2B),
+    outline = Color(0xFF9F8D84),
+    outlineVariant = Color(0xFF52443D),
+    scrim = Color.Black,
 )
