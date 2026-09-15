@@ -352,6 +352,7 @@ private fun NutritionCard(targets: NutritionTargets, eaten: Nutrition) {
             LinearProgressIndicator(
                 progress = { fraction(eaten.kcal, targets.kcal) },
                 color = if (left >= 0) MaterialTheme.colorScheme.primary else overColor,
+                trackColor = MaterialTheme.colorScheme.outlineVariant,
                 modifier = Modifier.fillMaxWidth(),
                 drawStopIndicator = {},
             )
