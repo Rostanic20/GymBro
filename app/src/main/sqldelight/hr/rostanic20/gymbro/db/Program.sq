@@ -35,6 +35,7 @@ CREATE TABLE day_exercise (
     rest_max_seconds INTEGER NOT NULL,
     is_top           INTEGER NOT NULL DEFAULT 0,
     note             TEXT,
+    is_hidden        INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (day_id, position)
 );
 
@@ -132,6 +133,7 @@ SELECT
     day_exercise.rest_max_seconds,
     day_exercise.is_top,
     day_exercise.note,
+    day_exercise.is_hidden,
     exercise.id AS exercise_id,
     exercise.name AS exercise_name,
     exercise.load_type,
@@ -157,3 +159,26 @@ updateLoadSettings:
 UPDATE exercise
 SET start_load_kg = :startLoadKg, increment_kg = :incrementKg
 WHERE id = :id;
+
+selectExercises:
+SELECT * FROM exercise ORDER BY name;
+
+updatePrescription:
+UPDATE day_exercise
+SET sets = :sets, rep_min = :repMin, rep_max = :repMax
+WHERE day_id = :dayId AND position = :position;
+
+updateHidden:
+UPDATE day_exercise
+SET is_hidden = :hidden
+WHERE day_id = :dayId AND position = :position;
+
+nextPosition:
+SELECT COALESCE(MAX(position), 0) + 1 FROM day_exercise WHERE day_id = ?;
+
+insertDayExercise:
+INSERT INTO day_exercise(
+    day_id, position, exercise_id, sets, rep_min, rep_max,
+    rir_min, rir_max, rest_min_seconds, rest_max_seconds, is_top, note, is_hidden
+)
+VALUES (:dayId, :position, :exerciseId, :sets, :repMin, :repMax, 1, 2, 120, 120, 0, NULL, 0);

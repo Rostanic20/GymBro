@@ -34,10 +34,12 @@ import hr.rostanic20.gymbro.navigation.AppDestination
 import hr.rostanic20.gymbro.navigation.AppNavigator
 import hr.rostanic20.gymbro.navigation.rememberAppNavigator
 import hr.rostanic20.gymbro.ui.body.BodyScreen
+import hr.rostanic20.gymbro.ui.body.PhotosScreen
 import hr.rostanic20.gymbro.ui.foods.FoodEditScreen
 import hr.rostanic20.gymbro.ui.foods.FoodsScreen
 import hr.rostanic20.gymbro.ui.history.HistoryScreen
 import hr.rostanic20.gymbro.ui.meal.MealScreen
+import hr.rostanic20.gymbro.ui.program.EditDayScreen
 import hr.rostanic20.gymbro.ui.session.SessionScreen
 import hr.rostanic20.gymbro.ui.settings.SettingsScreen
 import hr.rostanic20.gymbro.ui.today.TodayScreen
@@ -110,10 +112,16 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
                 )
             }
             entry<AppDestination.Train> {
-                TrainScreen(onOpenHistory = { navigator.navigate(AppDestination.History) })
+                TrainScreen(
+                    onOpenHistory = { navigator.navigate(AppDestination.History) },
+                    onEditDay = { navigator.navigate(AppDestination.EditDay(it)) },
+                )
             }
             entry<AppDestination.Body> {
-                BodyScreen()
+                BodyScreen(onOpenPhotos = { navigator.navigate(AppDestination.Photos) })
+            }
+            entry<AppDestination.Photos> {
+                PhotosScreen(onBack = { navigator.goBack() })
             }
             entry<AppDestination.Settings> {
                 SettingsScreen(onOpenFoods = { navigator.navigate(AppDestination.Foods) })
@@ -130,6 +138,9 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
             }
             entry<AppDestination.Meal> { destination ->
                 MealScreen(epochDay = destination.epochDay, slot = destination.slot, onBack = { navigator.goBack() })
+            }
+            entry<AppDestination.EditDay> { destination ->
+                EditDayScreen(dayId = destination.dayId, onBack = { navigator.goBack() })
             }
             entry<AppDestination.History> {
                 HistoryScreen(

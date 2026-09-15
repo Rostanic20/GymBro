@@ -8,6 +8,7 @@ import hr.rostanic20.gymbro.core.RestTimer
 import hr.rostanic20.gymbro.core.WallClock
 import hr.rostanic20.gymbro.domain.CALORIE_ADJUSTMENT_RANGE
 import hr.rostanic20.gymbro.domain.model.BodyWeight
+import hr.rostanic20.gymbro.domain.model.Exercise
 import hr.rostanic20.gymbro.domain.model.Food
 import hr.rostanic20.gymbro.domain.model.FoodDraft
 import hr.rostanic20.gymbro.domain.model.FoodLogEntry
@@ -16,6 +17,7 @@ import hr.rostanic20.gymbro.domain.model.Meal
 import hr.rostanic20.gymbro.domain.model.MealSettings
 import hr.rostanic20.gymbro.domain.model.Nutrition
 import hr.rostanic20.gymbro.domain.model.PhotoPose
+import hr.rostanic20.gymbro.domain.model.PlannedExercise
 import hr.rostanic20.gymbro.domain.model.Profile
 import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.domain.model.Recipe
@@ -98,16 +100,72 @@ class FakeProfileRepository(initial: Profile = defaultProfile) : ProfileReposito
     }
 }
 
-class FakeProgramRepository(days: List<WorkoutDay> = emptyList()) : ProgramRepository {
+class FakeProgramRepository(
+    days: List<WorkoutDay> = emptyList(),
+    exercises: List<Exercise> = emptyList(),
+) : ProgramRepository {
     private val state = MutableStateFlow(days)
+    private val exerciseState = MutableStateFlow(exercises)
     val loadUpdates = mutableListOf<Triple<Long, Double?, Double?>>()
     var failWrites = false
 
-    override fun workoutDays(): Flow<List<WorkoutDay>> = state
+    override fun workoutDays(): Flow<List<WorkoutDay>> =
+        state.map { list -> list.map { day -> day.copy(exercises = day.exercises.filterNot { it.isHidden }) } }
+
+    override fun editableDays(): Flow<List<WorkoutDay>> = state
+
+    override fun exercises(): Flow<List<Exercise>> = exerciseState
 
     override suspend fun updateLoadSettings(exerciseId: Long, startLoadKg: Double?, incrementKg: Double?) {
         failIf(failWrites)
         loadUpdates += Triple(exerciseId, startLoadKg, incrementKg)
+    }
+
+    override suspend fun updatePrescription(dayId: Long, position: Int, sets: Int, reps: IntRange) {
+        failIf(failWrites)
+        updateSlot(dayId, position) { it.copy(sets = sets, reps = reps) }
+    }
+
+    override suspend fun setExerciseHidden(dayId: Long, position: Int, hidden: Boolean) {
+        failIf(failWrites)
+        updateSlot(dayId, position) { it.copy(isHidden = hidden) }
+    }
+
+    override suspend fun addExercise(dayId: Long, exerciseId: Long, sets: Int, reps: IntRange) {
+        failIf(failWrites)
+        val exercise = exerciseState.value.first { it.id == exerciseId }
+        state.update { days ->
+            days.map { day ->
+                if (day.id != dayId) {
+                    day
+                } else {
+                    val added = PlannedExercise(
+                        position = (day.exercises.maxOfOrNull { it.position } ?: 0) + 1,
+                        exercise = exercise,
+                        sets = sets,
+                        reps = reps,
+                        rir = 1..2,
+                        restSeconds = 120..120,
+                        isTop = false,
+                        note = null,
+                        alternatives = emptyList(),
+                    )
+                    day.copy(exercises = day.exercises + added)
+                }
+            }
+        }
+    }
+
+    private fun updateSlot(dayId: Long, position: Int, change: (PlannedExercise) -> PlannedExercise) {
+        state.update { days ->
+            days.map { day ->
+                if (day.id != dayId) {
+                    day
+                } else {
+                    day.copy(exercises = day.exercises.map { if (it.position == position) change(it) else it })
+                }
+            }
+        }
     }
 }
 

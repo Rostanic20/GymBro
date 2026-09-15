@@ -57,6 +57,7 @@ private fun ProgramRowEntity.toPlannedExercise(alternatives: List<Alternative>):
     isTop = is_top != 0L,
     note = note,
     alternatives = alternatives,
+    isHidden = is_hidden != 0L,
 )
 
 private fun AlternativeRowEntity.toAlternative(): Alternative = Alternative(
@@ -99,6 +100,16 @@ fun SessionEntity.toDomain(): WorkoutSession = WorkoutSession(
     isDeload = is_deload != 0L,
     note = note,
     restEndsAtMillis = rest_ends_at,
+)
+
+fun ExerciseEntity.toDomain(): Exercise = exercise(
+    id = id,
+    name = name,
+    loadType = load_type,
+    progression = progression,
+    startLoadKg = start_load_kg,
+    incrementKg = increment_kg,
+    barWeightKg = bar_weight_kg,
 )
 
 fun SessionSummaryEntity.toDomain(): SessionSummary = SessionSummary(

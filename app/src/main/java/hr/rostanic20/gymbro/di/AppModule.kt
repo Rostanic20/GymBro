@@ -53,11 +53,13 @@ import hr.rostanic20.gymbro.domain.repository.SessionRepository
 import hr.rostanic20.gymbro.timer.AlarmMealReminderScheduler
 import hr.rostanic20.gymbro.timer.AlarmRestTimer
 import hr.rostanic20.gymbro.ui.body.BodyViewModel
+import hr.rostanic20.gymbro.ui.body.PhotosViewModel
 import hr.rostanic20.gymbro.ui.foods.FoodEditViewModel
 import hr.rostanic20.gymbro.ui.settings.BackupViewModel
 import hr.rostanic20.gymbro.ui.foods.FoodsViewModel
 import hr.rostanic20.gymbro.ui.history.HistoryViewModel
 import hr.rostanic20.gymbro.ui.meal.MealViewModel
+import hr.rostanic20.gymbro.ui.program.EditDayViewModel
 import hr.rostanic20.gymbro.ui.session.SessionViewModel
 import hr.rostanic20.gymbro.ui.settings.SettingsViewModel
 import hr.rostanic20.gymbro.ui.today.HealthViewModel
@@ -115,11 +117,13 @@ val appModule = module {
     viewModelOf(::HealthViewModel)
     viewModelOf(::TrainViewModel)
     viewModelOf(::BodyViewModel)
+    viewModelOf(::PhotosViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::BackupViewModel)
     viewModelOf(::FoodsViewModel)
     viewModelOf(::HistoryViewModel)
     viewModel { (dayId: Long) -> WorkoutViewModel(dayId, get(), get(), get(), get(), get()) }
+    viewModel { (dayId: Long) -> EditDayViewModel(dayId, get()) }
     viewModel { (sessionId: Long) -> SessionViewModel(sessionId, get(), get(), get(), get(), get()) }
     viewModel { (epochDay: Long, slot: Int) -> MealViewModel(epochDay, slot, get(), get(), get()) }
     viewModel { params -> FoodEditViewModel(params.getOrNull(), get()) }

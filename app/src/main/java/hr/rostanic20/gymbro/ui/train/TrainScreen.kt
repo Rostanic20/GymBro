@@ -60,13 +60,22 @@ import org.koin.compose.viewmodel.koinViewModel
 import java.time.format.TextStyle
 
 @Composable
-fun TrainScreen(onOpenHistory: () -> Unit, viewModel: TrainViewModel = koinViewModel()) {
+fun TrainScreen(
+    onOpenHistory: () -> Unit,
+    onEditDay: (dayId: Long) -> Unit,
+    viewModel: TrainViewModel = koinViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
     state?.let {
-        TrainContent(state = it, onSaveLoads = viewModel::updateLoadSettings, onOpenHistory = onOpenHistory)
+        TrainContent(
+            state = it,
+            onSaveLoads = viewModel::updateLoadSettings,
+            onOpenHistory = onOpenHistory,
+            onEditDay = onEditDay,
+        )
     }
 }
 
@@ -75,6 +84,7 @@ private fun TrainContent(
     state: TrainUiState,
     onSaveLoads: (exerciseId: Long, settings: LoadSettings) -> Unit,
     onOpenHistory: () -> Unit,
+    onEditDay: (dayId: Long) -> Unit,
 ) {
     val spacing = LocalSpacing.current
     val listState = rememberLazyListState()
@@ -114,6 +124,7 @@ private fun TrainContent(
                 expanded = expanded,
                 onToggle = { expanded = !expanded },
                 onEditLoads = { editingExerciseId = it.id },
+                onEditDay = { onEditDay(day.id) },
             )
         }
         item {
@@ -140,6 +151,7 @@ private fun WorkoutDayCard(
     expanded: Boolean,
     onToggle: () -> Unit,
     onEditLoads: (Exercise) -> Unit,
+    onEditDay: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
@@ -188,6 +200,9 @@ private fun WorkoutDayCard(
                     day.exercises.forEach { planned ->
                         HorizontalDivider()
                         ExerciseItem(planned = planned, onEditLoads = onEditLoads)
+                    }
+                    TextButton(onClick = onEditDay) {
+                        Text(stringResource(R.string.edit_day))
                     }
                 }
             }

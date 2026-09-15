@@ -272,7 +272,24 @@
     <string name="photo_latest">Latest · %1$s</string>
     <string name="photo_none">No photo yet</string>
     <string name="photo_delete">Delete photo</string>
+    <string name="photos_open">See all photos</string>
+    <string name="photos_pick_two">Tap two photos to compare them side by side.</string>
+    <string name="photos_comparing">Tap a photo to swap it out of the comparison.</string>
+    <string name="photos_compare_one">Compare this photo</string>
+    <string name="photos_clear">Clear comparison</string>
     <string name="weight_trend_caption">Last 12 weeks. Dots are weigh-ins, the line is the 7-day average.</string>
+
+    <string name="edit_day">Edit this day</string>
+    <string name="edit_day_note">Changes apply from your next workout. Removed exercises keep their logged sets.</string>
+    <string name="edit_sets_reps">Sets and reps</string>
+    <string name="edit_sets">Sets</string>
+    <string name="edit_rep_min">Reps from</string>
+    <string name="edit_rep_max">Reps to</string>
+    <string name="edit_invalid">Sets 1–10, reps 1–50, and the second number can\'t be lower than the first.</string>
+    <string name="edit_remove">Remove</string>
+    <string name="edit_restore">Put back</string>
+    <string name="edit_removed">Removed from this day</string>
+    <string name="edit_add_exercise">Add exercise</string>
 
     <string name="history_title">Workout history</string>
     <string name="history_open">See every workout</string>
