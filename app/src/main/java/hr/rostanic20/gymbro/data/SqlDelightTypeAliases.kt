@@ -15,6 +15,7 @@ import hr.rostanic20.gymbro.db.Waist
 import hr.rostanic20.gymbro.db.Workout_session
 
 typealias ProgramRowEntity = SelectProgram
+typealias ExerciseEntity = hr.rostanic20.gymbro.db.Exercise
 typealias AlternativeRowEntity = SelectAlternatives
 typealias SessionEntity = Workout_session
 typealias SetEntity = Set_entry

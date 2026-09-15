@@ -85,7 +85,7 @@ data class BodyActions(
 )
 
 @Composable
-fun BodyScreen(viewModel: BodyViewModel = koinViewModel()) {
+fun BodyScreen(onOpenPhotos: () -> Unit, viewModel: BodyViewModel = koinViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
@@ -101,11 +101,11 @@ fun BodyScreen(viewModel: BodyViewModel = koinViewModel()) {
             deletePhoto = viewModel::deletePhoto,
         )
     }
-    state?.let { BodyContent(state = it, actions = actions) }
+    state?.let { BodyContent(state = it, actions = actions, onOpenPhotos = onOpenPhotos) }
 }
 
 @Composable
-private fun BodyContent(state: BodyUiState, actions: BodyActions) {
+private fun BodyContent(state: BodyUiState, actions: BodyActions, onOpenPhotos: () -> Unit) {
     val spacing = LocalSpacing.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -116,7 +116,7 @@ private fun BodyContent(state: BodyUiState, actions: BodyActions) {
         item { WeeklyCheckCard(check = state.check, adjustmentKcal = state.kcalAdjustment, onApply = actions.applyCalorieChange) }
         item { WeightHistoryCard(state = state) }
         item { WaistCard(state = state, onSave = actions.saveWaist) }
-        item { PhotosCard(photosByPose = state.photosByPose, actions = actions) }
+        item { PhotosCard(photosByPose = state.photosByPose, actions = actions, onOpenPhotos = onOpenPhotos) }
     }
 }
 
@@ -325,7 +325,11 @@ private fun WaistCard(state: BodyUiState, onSave: (Double) -> Unit) {
 }
 
 @Composable
-private fun PhotosCard(photosByPose: Map<PhotoPose, List<ProgressPhoto>>, actions: BodyActions) {
+private fun PhotosCard(
+    photosByPose: Map<PhotoPose, List<ProgressPhoto>>,
+    actions: BodyActions,
+    onOpenPhotos: () -> Unit,
+) {
     val spacing = LocalSpacing.current
     var capturePose by rememberSaveable { mutableStateOf<PhotoPose?>(null) }
     var captureFile by rememberSaveable { mutableStateOf<String?>(null) }
@@ -404,6 +408,9 @@ private fun PhotosCard(photosByPose: Map<PhotoPose, List<ProgressPhoto>>, action
                     }
                 }
             }
+            TextButton(onClick = onOpenPhotos, enabled = photosByPose.values.any { it.isNotEmpty() }) {
+                Text(stringResource(R.string.photos_open))
+            }
         }
     }
     photosByPose.values.flatten().firstOrNull { it.id == deletingId }?.let { photo ->
@@ -452,7 +459,7 @@ private fun PhotoTile(photo: ProgressPhoto, @StringRes label: Int, file: File, o
 }
 
 @get:StringRes
-private val PhotoPose.labelRes: Int
+internal val PhotoPose.labelRes: Int
     get() = when (this) {
         PhotoPose.FRONT -> R.string.photo_pose_front
         PhotoPose.SIDE -> R.string.photo_pose_side

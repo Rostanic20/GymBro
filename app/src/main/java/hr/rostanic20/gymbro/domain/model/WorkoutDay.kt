@@ -22,6 +22,7 @@ data class PlannedExercise(
     val isTop: Boolean,
     val note: String?,
     val alternatives: List<Alternative>,
+    val isHidden: Boolean = false,
 )
 
 data class Exercise(

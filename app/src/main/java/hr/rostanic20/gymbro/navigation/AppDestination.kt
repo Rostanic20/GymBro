@@ -30,6 +30,12 @@ sealed interface AppDestination : NavKey {
     data object History : AppDestination
 
     @Serializable
+    data class EditDay(val dayId: Long) : AppDestination
+
+    @Serializable
+    data object Photos : AppDestination
+
+    @Serializable
     data object Foods : AppDestination
 
     @Serializable

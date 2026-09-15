@@ -6,10 +6,12 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import hr.rostanic20.gymbro.data.local.BodyLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.FoodLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.PhotoLocalDataSourceImpl
+import hr.rostanic20.gymbro.data.local.ProgramLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.SessionLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.repository.BodyRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.FoodRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.PhotoRepositoryImpl
+import hr.rostanic20.gymbro.data.repository.ProgramRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.SessionRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
 import hr.rostanic20.gymbro.domain.model.BodyWeight
@@ -51,11 +53,12 @@ class MigrationTest {
     fun `a version 1 database gains session tables and keeps its program`() = runTest {
         val (driver, db) = openBaseline(1)
         db.programQueries.updateLoadSettings(startLoadKg = 45.0, incrementKg = 2.5, id = 1)
-        val exercisesBefore = db.programQueries.selectProgram().awaitAsList().size
 
         AppDb.Schema.synchronous().migrate(driver, 1, AppDb.Schema.version)
 
-        assertEquals(exercisesBefore, db.programQueries.selectProgram().awaitAsList().size)
+        val program = db.programQueries.selectProgram().awaitAsList()
+        assertTrue(program.isNotEmpty())
+        assertEquals(45.0, program.first { it.exercise_id == 1L }.start_load_kg!!, 0.001)
         val sessions = SessionRepositoryImpl(SessionLocalDataSourceImpl(db, dispatchers()), dispatchers())
         val id = sessions.startSession(1, monday, isDeload = false, nowMillis = 1_000)
         sessions.logSet(id, 1, 1, SetValues(45.0, 8, 2), nowMillis = 1_100)
@@ -78,6 +81,24 @@ class MigrationTest {
         foods.logRecipe(monday, Meal.BREAKFAST_SHAKE, shake, nowMillis = 2_000)
         assertEquals(4, foods.log(monday).first().size)
         assertEquals(sessionId, sessions.session(sessionId).first()?.id)
+        driver.close()
+    }
+
+    @Test
+    fun `a version 4 database can hide an exercise and keeps the rest of the day`() = runTest {
+        val (driver, db) = openBaseline(4)
+
+        AppDb.Schema.synchronous().migrate(driver, 4, AppDb.Schema.version)
+
+        val program = ProgramRepositoryImpl(ProgramLocalDataSourceImpl(db, dispatchers()), dispatchers())
+        val before = program.workoutDays().first().first { it.id == 1L }
+        val dropped = before.exercises.last()
+        program.setExerciseHidden(dayId = 1, position = dropped.position, hidden = true)
+
+        val after = program.workoutDays().first().first { it.id == 1L }
+        assertEquals(before.exercises.size - 1, after.exercises.size)
+        assertTrue(after.exercises.none { it.exercise.id == dropped.exercise.id })
+        assertTrue(program.editableDays().first().first { it.id == 1L }.exercises.any { it.isHidden })
         driver.close()
     }
 
