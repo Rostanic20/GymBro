@@ -201,6 +201,7 @@
     <string name="weight_field_past">That morning (kg)</string>
     <string name="day_previous">Previous day</string>
     <string name="day_next">Next day</string>
+    <string name="day_pick">Pick a date</string>
     <string name="weight_week_average">7-day average: %1$s kg</string>
     <string name="weight_weekly_change">Change vs last week: %1$s kg</string>
     <string name="weight_hint">Same conditions every morning. Judge the weekly average, not the day.</string>
@@ -275,7 +276,7 @@
     <string name="photo_none">No photo yet</string>
     <string name="photo_delete">Delete photo</string>
     <string name="photos_open">See all photos</string>
-    <string name="photos_pick_two">Tap two photos to compare them side by side.</string>
+    <string name="photos_pick_two">Tap two photos to compare them side by side. Long-press one to delete it.</string>
     <string name="photos_comparing">Tap a photo to swap it out of the comparison.</string>
     <string name="photos_compare_one">Compare this photo</string>
     <string name="photos_clear">Clear comparison</string>

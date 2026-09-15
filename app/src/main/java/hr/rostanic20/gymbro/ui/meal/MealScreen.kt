@@ -53,6 +53,7 @@ import hr.rostanic20.gymbro.domain.nutritionFor
 import hr.rostanic20.gymbro.domain.total
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.formatCount
 import hr.rostanic20.gymbro.ui.common.formatKg
@@ -99,7 +100,10 @@ fun MealScreen(
             deleteEntry = viewModel::deleteEntry,
         )
     }
-    state?.let { MealContent(state = it, onBack = onBack, actions = actions) }
+    when (val current = state) {
+        null -> LoadingScreen()
+        else -> MealContent(state = current, onBack = onBack, actions = actions)
+    }
 }
 
 @Composable

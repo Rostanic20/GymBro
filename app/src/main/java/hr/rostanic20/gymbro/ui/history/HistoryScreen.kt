@@ -22,8 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
@@ -36,7 +38,10 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = koinViewModel(),
 ) {
     val items by viewModel.state.collectAsStateWithLifecycle()
-    items?.let { HistoryContent(items = it, onBack = onBack, onOpenSession = onOpenSession) }
+    when (val current = items) {
+        null -> LoadingScreen()
+        else -> HistoryContent(items = current, onBack = onBack, onOpenSession = onOpenSession)
+    }
 }
 
 @Composable
@@ -94,6 +99,8 @@ private fun HistoryCard(item: HistoryItem, onClick: () -> Unit) {
                 Text(
                     text = item.dayName ?: stringResource(R.string.history_unknown_day),
                     style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
                 if (session.isDeload) {

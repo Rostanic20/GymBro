@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 enum class WorkoutStatus { NOT_STARTED, IN_PROGRESS, LOGGED }
 
@@ -136,6 +137,10 @@ class TodayViewModel(
 
     fun showToday() {
         daysBack.value = 0
+    }
+
+    fun showDate(date: LocalDate) {
+        daysBack.value = ChronoUnit.DAYS.between(date, dates.today()).coerceIn(0, MAX_DAYS_BACK)
     }
 
     fun startProgram() {

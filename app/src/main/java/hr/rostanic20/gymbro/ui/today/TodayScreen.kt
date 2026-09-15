@@ -2,6 +2,9 @@ package hr.rostanic20.gymbro.ui.today
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +20,9 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -24,20 +30,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.model.Meal
@@ -47,6 +58,7 @@ import hr.rostanic20.gymbro.domain.model.NutritionTargets
 import hr.rostanic20.gymbro.domain.model.WorkoutDay
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.formatCount
 import hr.rostanic20.gymbro.ui.common.formatKg
@@ -54,10 +66,14 @@ import hr.rostanic20.gymbro.ui.common.labelRes
 import hr.rostanic20.gymbro.ui.common.parseKg
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.setsRepsLabel
+import hr.rostanic20.gymbro.ui.common.toUtcMillis
+import hr.rostanic20.gymbro.ui.common.utcMillisToLocalDate
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
+import hr.rostanic20.gymbro.ui.theme.LocalStatusColors
 import hr.rostanic20.gymbro.ui.workout.WeekBanner
 import hr.rostanic20.gymbro.ui.workout.showsWeekBanner
 import org.koin.compose.viewmodel.koinViewModel
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -66,6 +82,7 @@ import kotlin.math.roundToInt
 
 private const val MIN_BODY_WEIGHT_KG = 30.0
 private const val MAX_BODY_WEIGHT_KG = 300.0
+private val SWIPE_THRESHOLD = 72.dp
 
 @Composable
 fun TodayScreen(
@@ -78,6 +95,9 @@ fun TodayScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
+    if (state == null) {
+        LoadingScreen()
+    }
     state?.let {
         TodayContent(
             state = it,
@@ -89,6 +109,7 @@ fun TodayScreen(
             onPreviousDay = viewModel::showPreviousDay,
             onNextDay = viewModel::showNextDay,
             onToday = viewModel::showToday,
+            onPickDate = viewModel::showDate,
             healthCard = { HealthCard() },
         )
     }
@@ -105,12 +126,26 @@ internal fun TodayContent(
     onPreviousDay: () -> Unit = {},
     onNextDay: () -> Unit = {},
     onToday: () -> Unit = {},
+    onPickDate: (LocalDate) -> Unit = {},
     healthCard: @Composable () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
-    val week = state.week
+    var swiped by remember { mutableFloatStateOf(0f) }
+    val swipeThreshold = with(LocalDensity.current) { SWIPE_THRESHOLD.toPx() }
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .draggable(
+                orientation = Orientation.Horizontal,
+                state = rememberDraggableState { swiped += it },
+                onDragStopped = {
+                    when {
+                        swiped > swipeThreshold -> onPreviousDay()
+                        swiped < -swipeThreshold -> onNextDay()
+                    }
+                    swiped = 0f
+                },
+            ),
         contentPadding = PaddingValues(spacing.s16),
         verticalArrangement = Arrangement.spacedBy(spacing.s16),
     ) {
@@ -120,6 +155,7 @@ internal fun TodayContent(
                 onPreviousDay = onPreviousDay,
                 onNextDay = onNextDay,
                 onToday = onToday,
+                onPickDate = onPickDate,
             )
         }
         if (state.programStart == null) {
@@ -156,8 +192,10 @@ private fun TodayHeader(
     onPreviousDay: () -> Unit,
     onNextDay: () -> Unit,
     onToday: () -> Unit,
+    onPickDate: (LocalDate) -> Unit,
 ) {
     val formatter = rememberDayFormatter()
+    var picking by rememberSaveable { mutableStateOf(false) }
     val label = when {
         state.week != null -> stringResource(
             R.string.today_week,
@@ -179,17 +217,25 @@ private fun TodayHeader(
                 contentDescription = stringResource(R.string.day_previous),
             )
         }
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClickLabel = stringResource(R.string.day_pick)) { picking = true },
+        ) {
             label?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Text(
                 text = state.date.format(formatter),
                 style = MaterialTheme.typography.headlineSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         if (state.isToday) {
@@ -210,6 +256,40 @@ private fun TodayHeader(
                 )
             }
         }
+    }
+    if (picking) {
+        DayPickerDialog(
+            date = state.date,
+            onDismiss = { picking = false },
+            onConfirm = {
+                picking = false
+                onPickDate(it)
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DayPickerDialog(date: LocalDate, onDismiss: () -> Unit, onConfirm: (LocalDate) -> Unit) {
+    val state = rememberDatePickerState(initialSelectedDateMillis = date.toUtcMillis())
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = { state.selectedDateMillis?.let { onConfirm(utcMillisToLocalDate(it)) } },
+                enabled = state.selectedDateMillis != null,
+            ) {
+                Text(stringResource(R.string.action_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    ) {
+        DatePicker(state = state)
     }
 }
 
@@ -255,6 +335,7 @@ private fun NutritionCard(targets: NutritionTargets, eaten: Nutrition) {
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
     val left = targets.kcal - eaten.kcal.roundToInt()
+    val overColor = LocalStatusColors.current.over
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(spacing.s16),
@@ -266,9 +347,11 @@ private fun NutritionCard(targets: NutritionTargets, eaten: Nutrition) {
                     formatCount(abs(left), locale),
                 ),
                 style = MaterialTheme.typography.headlineMedium,
+                color = if (left >= 0) MaterialTheme.colorScheme.onSurface else overColor,
             )
             LinearProgressIndicator(
                 progress = { fraction(eaten.kcal, targets.kcal) },
+                color = if (left >= 0) MaterialTheme.colorScheme.primary else overColor,
                 modifier = Modifier.fillMaxWidth(),
                 drawStopIndicator = {},
             )
@@ -321,44 +404,49 @@ private fun MealsCard(
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
     val timeFormatter = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(vertical = spacing.s8)) {
-            Text(
-                text = stringResource(R.string.meals_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = spacing.s16, vertical = spacing.s8),
-            )
-            meals.forEach { meal ->
-                val eaten = eatenByMeal[meal]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpenMeal(meal) }
-                        .padding(horizontal = spacing.s16, vertical = spacing.s12),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.s12),
-                ) {
-                    Text(
-                        text = timeFor(meal).format(timeFormatter),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = stringResource(meal.labelRes),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = eaten?.let { formatCount(it.kcal.roundToInt(), locale) }
-                            ?: stringResource(R.string.meal_none),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (eaten == null) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                    )
-                }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.meals_title),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = spacing.s4),
+        )
+        meals.forEach { meal ->
+            val eaten = eatenByMeal[meal]
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenMeal(meal) }
+                    .padding(vertical = spacing.s12),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(spacing.s12),
+            ) {
+                Text(
+                    text = timeFor(meal).format(timeFormatter),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = stringResource(meal.labelRes),
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = eaten?.let { formatCount(it.kcal.roundToInt(), locale) }
+                        ?: stringResource(R.string.meal_none),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (eaten == null) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -405,6 +493,8 @@ private fun WorkoutSummaryCard(
                 Text(
                     text = stringResource(R.string.day_title, workout.name, workout.emphasis),
                     style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
                 when (status) {
@@ -440,6 +530,8 @@ private fun WorkoutSummaryCard(
                     Text(
                         text = planned.exercise.name,
                         style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
                     Text(
