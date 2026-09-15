@@ -53,6 +53,7 @@ import hr.rostanic20.gymbro.domain.nutritionTargets
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
 import hr.rostanic20.gymbro.ui.common.formatCount
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.labelRes
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.toUtcMillis
@@ -84,6 +85,9 @@ fun SettingsScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
+    if (profile == null) {
+        LoadingScreen()
+    }
     profile?.let {
         SettingsContent(
             profile = it,
@@ -156,11 +160,13 @@ private fun ProgramCard(
                     ?: stringResource(R.string.settings_program_not_started),
                 style = MaterialTheme.typography.bodyLarge,
             )
-            Text(
-                text = stringResource(R.string.settings_program_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (programStart == null) {
+                Text(
+                    text = stringResource(R.string.settings_program_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.s8)) {
                 Button(onClick = { showPicker = true }) {
                     Text(
@@ -280,11 +286,13 @@ private fun MealsCard(
                     },
                 )
             }
-            Text(
-                text = stringResource(R.string.settings_meal_reminders_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (!remindersEnabled) {
+                Text(
+                    text = stringResource(R.string.settings_meal_reminders_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             mealSettings.orderedMeals.forEach { meal ->
                 MealRow(
                     meal = meal,

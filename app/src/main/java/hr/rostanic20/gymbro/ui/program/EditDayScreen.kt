@@ -33,12 +33,14 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.model.Exercise
 import hr.rostanic20.gymbro.domain.model.PlannedExercise
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.rangeLabel
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import org.koin.compose.viewmodel.koinViewModel
@@ -54,6 +56,9 @@ fun EditDayScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
+    if (state == null) {
+        LoadingScreen()
+    }
     state?.let {
         EditDayContent(
             state = it,
@@ -149,6 +154,8 @@ private fun ExerciseEditCard(planned: PlannedExercise, onEdit: () -> Unit, onHid
             Text(
                 text = planned.exercise.name,
                 style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 color = if (planned.isHidden) {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 } else {

@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.domain.model.Exercise
@@ -47,6 +48,7 @@ import hr.rostanic20.gymbro.ui.common.ChartPoint
 import hr.rostanic20.gymbro.ui.common.ChartSeries
 import hr.rostanic20.gymbro.ui.common.ChartStyle
 import hr.rostanic20.gymbro.ui.common.LineChart
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.MIN_CHART_POINTS
 import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.formatKg
@@ -69,6 +71,9 @@ fun TrainScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
+    if (state == null) {
+        LoadingScreen()
+    }
     state?.let {
         TrainContent(
             state = it,
@@ -172,6 +177,8 @@ private fun WorkoutDayCard(
                     Text(
                         text = stringResource(R.string.day_title, day.name, day.emphasis),
                         style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = stringResource(
@@ -238,7 +245,12 @@ private fun LiftHistoryCard(history: List<LiftHistory>, onOpenHistory: () -> Uni
                 val loadType = lift.exercise.loadType
                 val latest = topSetLabel(loadType, lift.points.last())
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.s4)) {
-                    Text(text = lift.exercise.name, style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = lift.exercise.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     Text(
                         text = if (lift.points.size == 1) {
                             latest

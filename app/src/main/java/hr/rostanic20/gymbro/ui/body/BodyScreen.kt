@@ -59,6 +59,7 @@ import hr.rostanic20.gymbro.ui.common.ChartPoint
 import hr.rostanic20.gymbro.ui.common.ChartSeries
 import hr.rostanic20.gymbro.ui.common.ChartStyle
 import hr.rostanic20.gymbro.ui.common.LineChart
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.MIN_CHART_POINTS
 import hr.rostanic20.gymbro.ui.common.formatCount
 import hr.rostanic20.gymbro.ui.common.formatKg
@@ -66,6 +67,7 @@ import hr.rostanic20.gymbro.ui.common.parseKg
 import hr.rostanic20.gymbro.ui.common.rememberDayFormatter
 import hr.rostanic20.gymbro.ui.common.rememberShortDayFormatter
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
+import hr.rostanic20.gymbro.ui.theme.LocalStatusColors
 import org.koin.compose.viewmodel.koinViewModel
 import java.io.File
 import java.util.Locale
@@ -101,7 +103,10 @@ fun BodyScreen(onOpenPhotos: () -> Unit, viewModel: BodyViewModel = koinViewMode
             deletePhoto = viewModel::deletePhoto,
         )
     }
-    state?.let { BodyContent(state = it, actions = actions, onOpenPhotos = onOpenPhotos) }
+    when (val current = state) {
+        null -> LoadingScreen()
+        else -> BodyContent(state = current, actions = actions, onOpenPhotos = onOpenPhotos)
+    }
 }
 
 @Composable
@@ -125,15 +130,19 @@ private fun WeeklyCheckCard(check: WeeklyCheck, adjustmentKcal: Int, onApply: (I
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
     val change = check.calorieChange
+    val status = LocalStatusColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (change != 0) {
-            CardDefaults.cardColors(
+        colors = when {
+            change != 0 -> CardDefaults.cardColors(
+                containerColor = status.attentionContainer,
+                contentColor = status.onAttentionContainer,
+            )
+            check is WeeklyCheck.OnTrack -> CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
             )
-        } else {
-            CardDefaults.cardColors()
+            else -> CardDefaults.cardColors()
         },
     ) {
         Column(
@@ -315,11 +324,13 @@ private fun WaistCard(state: BodyUiState, onSave: (Double) -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
-            Text(
-                text = stringResource(R.string.waist_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (state.latestWaist == null) {
+                Text(
+                    text = stringResource(R.string.waist_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -353,11 +364,13 @@ private fun PhotosCard(
             verticalArrangement = Arrangement.spacedBy(spacing.s12),
         ) {
             Text(text = stringResource(R.string.photos_title), style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = stringResource(R.string.photos_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (photosByPose.values.all { it.isEmpty() }) {
+                Text(
+                    text = stringResource(R.string.photos_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             PhotoPose.entries.forEach { pose ->
                 val photos = photosByPose[pose].orEmpty()
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.s8)) {
@@ -408,7 +421,7 @@ private fun PhotosCard(
                     }
                 }
             }
-            TextButton(onClick = onOpenPhotos, enabled = photosByPose.values.any { it.isNotEmpty() }) {
+            TextButton(onClick = onOpenPhotos) {
                 Text(stringResource(R.string.photos_open))
             }
         }

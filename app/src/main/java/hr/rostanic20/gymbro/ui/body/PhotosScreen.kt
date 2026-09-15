@@ -1,7 +1,7 @@
 package hr.rostanic20.gymbro.ui.body
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,6 +41,7 @@ import hr.rostanic20.gymbro.domain.model.PhotoPose
 import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.rememberShortDayFormatter
 import hr.rostanic20.gymbro.ui.theme.LocalSpacing
 import org.koin.compose.viewmodel.koinViewModel
@@ -54,6 +55,9 @@ fun PhotosScreen(onBack: () -> Unit, viewModel: PhotosViewModel = koinViewModel(
     val snackbarHostState = LocalSnackbarHostState.current
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.messages) { snackbarHostState.showSnackbar(resources.getString(it.text)) }
+    if (photos == null) {
+        LoadingScreen()
+    }
     photos?.let {
         PhotosContent(
             photosByPose = it,
@@ -187,15 +191,14 @@ private fun PoseRow(
                                 width = if (isSelected) SELECTED_BORDER else 0.dp,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                             )
-                            .clickable(
-                                onClick = { onSelect(photo) },
+                            .combinedClickable(
                                 onClickLabel = stringResource(R.string.photos_compare_one),
+                                onClick = { onSelect(photo) },
+                                onLongClickLabel = stringResource(R.string.photo_delete),
+                                onLongClick = { onLongPress(photo) },
                             ),
                     )
                     Text(text = photo.date.format(formatter), style = MaterialTheme.typography.labelSmall)
-                    TextButton(onClick = { onLongPress(photo) }) {
-                        Text(stringResource(R.string.photo_delete))
-                    }
                 }
             }
         }

@@ -60,6 +60,7 @@ import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.workingLoad
 import hr.rostanic20.gymbro.ui.LocalSnackbarHostState
 import hr.rostanic20.gymbro.ui.ObserveAsEvents
+import hr.rostanic20.gymbro.ui.common.LoadingScreen
 import hr.rostanic20.gymbro.ui.common.Tag
 import hr.rostanic20.gymbro.ui.common.formatKg
 import hr.rostanic20.gymbro.ui.common.rangeLabel
@@ -112,7 +113,10 @@ fun SessionScreen(
             discard = viewModel::discard,
         )
     }
-    state?.let { SessionContent(state = it, onBack = onClose, actions = actions) }
+    when (val current = state) {
+        null -> LoadingScreen()
+        else -> SessionContent(state = current, onBack = onClose, actions = actions)
+    }
 }
 
 @Composable
