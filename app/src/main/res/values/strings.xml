@@ -15,18 +15,22 @@
     <string name="message_backup_failed">Backup failed. Try again.</string>
     <string name="message_restore_failed">That file isn\'t a GymBro backup, or it comes from a newer version of the app.</string>
 
-    <string name="today_week">Week %1$d</string>
+    <string name="today_week">Week %1$d · %2$s</string>
     <string name="today_starts_on">Program starts %1$s</string>
     <string name="today_not_started_title">Program not started</string>
     <string name="today_not_started_body">Weeks 1–2 hold maintenance at %1$s kcal every day, travel weekend included. The surplus starts in week 3.</string>
     <string name="today_start_this_week">Start this week</string>
     <string name="today_start_on">Start %1$s</string>
-    <string name="phase_maintenance">Maintenance · prove you can hit it every day</string>
-    <string name="phase_surplus">Surplus · aim for 0.3 kg a week</string>
-    <string name="target_kcal">kcal</string>
-    <string name="target_protein">Protein</string>
-    <string name="target_fat">Fat</string>
-    <string name="target_carbs">Carbs</string>
+    <string name="phase_maintenance">maintenance</string>
+    <string name="phase_surplus">surplus</string>
+    <string name="today_kcal_left">%1$s kcal left</string>
+    <string name="today_kcal_over">%1$s kcal over</string>
+    <string name="today_macro">%1$s %2$s/%3$s</string>
+    <string name="macro_protein">P</string>
+    <string name="macro_carbs">C</string>
+    <string name="macro_fat">F</string>
+    <string name="meal_none">–</string>
+    <string name="weight_average_short">ø %1$s kg</string>
     <string name="today_travel_title">Travel day</string>
     <string name="today_travel_body">Walk, eat, sleep. Keep both shakes and keep protein up.</string>
     <string name="today_open_workout">Open workout</string>
@@ -189,10 +193,8 @@
     <string name="canteen_tip_soup">Whey now, 40 g in shake #2, and 4 eggs at dinner.</string>
 
     <string name="food_eaten_kcal">%1$s / %2$s kcal</string>
-    <string name="food_eaten_grams">%1$s / %2$s g</string>
     <string name="meals_title">Meals</string>
     <string name="meal_kcal">%1$s kcal</string>
-    <string name="meal_not_logged">Not logged</string>
     <string name="protein_grams">%1$s g protein</string>
     <string name="weight_title">Weight</string>
     <string name="weight_field">Today (kg)</string>
