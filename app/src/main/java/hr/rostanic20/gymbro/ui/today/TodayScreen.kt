@@ -1,5 +1,6 @@
 package hr.rostanic20.gymbro.ui.today
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private const val MIN_BODY_WEIGHT_KG = 30.0
@@ -123,9 +125,6 @@ internal fun TodayContent(
         if (state.programStart == null) {
             item { NotStartedCard(state = state, onStartProgram = onStartProgram) }
         }
-        if (week != null && showsWeekBanner(week)) {
-            item { WeekBanner(week = week) }
-        }
         item { NutritionCard(targets = state.targets, eaten = state.eaten) }
         item {
             MealsCard(
@@ -160,7 +159,16 @@ private fun TodayHeader(
 ) {
     val formatter = rememberDayFormatter()
     val label = when {
-        state.week != null -> stringResource(R.string.today_week, state.week)
+        state.week != null -> stringResource(
+            R.string.today_week,
+            state.week,
+            stringResource(
+                when (state.targets.phase) {
+                    NutritionPhase.MAINTENANCE -> R.string.phase_maintenance
+                    NutritionPhase.SURPLUS -> R.string.phase_surplus
+                },
+            ),
+        )
         state.programStart != null -> stringResource(R.string.today_starts_on, state.programStart.format(formatter))
         else -> null
     }
@@ -246,59 +254,40 @@ private fun NotStartedCard(state: TodayUiState, onStartProgram: () -> Unit) {
 private fun NutritionCard(targets: NutritionTargets, eaten: Nutrition) {
     val spacing = LocalSpacing.current
     val locale = LocalLocale.current.platformLocale
+    val left = targets.kcal - eaten.kcal.roundToInt()
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(spacing.s16),
-            verticalArrangement = Arrangement.spacedBy(spacing.s12),
+            verticalArrangement = Arrangement.spacedBy(spacing.s8),
         ) {
             Text(
                 text = stringResource(
-                    when (targets.phase) {
-                        NutritionPhase.MAINTENANCE -> R.string.phase_maintenance
-                        NutritionPhase.SURPLUS -> R.string.phase_surplus
-                    },
+                    if (left >= 0) R.string.today_kcal_left else R.string.today_kcal_over,
+                    formatCount(abs(left), locale),
                 ),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.headlineMedium,
             )
-            ProgressRow(
-                label = stringResource(R.string.target_kcal),
-                value = stringResource(
+            LinearProgressIndicator(
+                progress = { fraction(eaten.kcal, targets.kcal) },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = {},
+            )
+            Text(
+                text = stringResource(
                     R.string.food_eaten_kcal,
                     formatCount(eaten.kcal.roundToInt(), locale),
                     formatCount(targets.kcal, locale),
                 ),
-                progress = fraction(eaten.kcal, targets.kcal),
-            )
-            ProgressRow(
-                label = stringResource(R.string.target_protein),
-                value = stringResource(
-                    R.string.food_eaten_grams,
-                    formatCount(eaten.proteinG.roundToInt(), locale),
-                    formatCount(targets.proteinG, locale),
-                ),
-                progress = fraction(eaten.proteinG, targets.proteinG),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                MacroText(
-                    label = stringResource(R.string.target_carbs),
-                    value = stringResource(
-                        R.string.food_eaten_grams,
-                        formatCount(eaten.carbsG.roundToInt(), locale),
-                        formatCount(targets.carbsG, locale),
-                    ),
-                )
-                MacroText(
-                    label = stringResource(R.string.target_fat),
-                    value = stringResource(
-                        R.string.food_eaten_grams,
-                        formatCount(eaten.fatG.roundToInt(), locale),
-                        formatCount(targets.fatG, locale),
-                    ),
-                )
+                MacroText(R.string.macro_protein, eaten.proteinG, targets.proteinG, emphasised = true)
+                MacroText(R.string.macro_carbs, eaten.carbsG, targets.carbsG, emphasised = false)
+                MacroText(R.string.macro_fat, eaten.fatG, targets.fatG, emphasised = false)
             }
         }
     }
@@ -308,30 +297,18 @@ private fun fraction(eaten: Double, target: Int): Float =
     if (target <= 0) 0f else (eaten / target).toFloat().coerceIn(0f, 1f)
 
 @Composable
-private fun ProgressRow(label: String, value: String, progress: Float) {
-    val spacing = LocalSpacing.current
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.s4)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(text = label, style = MaterialTheme.typography.labelLarge)
-            Text(text = value, style = MaterialTheme.typography.labelLarge)
-        }
-        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), drawStopIndicator = {})
-    }
-}
-
-@Composable
-private fun MacroText(label: String, value: String) {
-    Column {
-        Text(text = value, style = MaterialTheme.typography.titleSmall)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+private fun MacroText(@StringRes label: Int, eaten: Double, target: Int, emphasised: Boolean) {
+    val locale = LocalLocale.current.platformLocale
+    Text(
+        text = stringResource(
+            R.string.today_macro,
+            stringResource(label),
+            formatCount(eaten.roundToInt(), locale),
+            formatCount(target, locale),
+        ),
+        style = if (emphasised) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+        color = if (emphasised) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -372,8 +349,8 @@ private fun MealsCard(
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = eaten?.let { stringResource(R.string.meal_kcal, formatCount(it.kcal.roundToInt(), locale)) }
-                            ?: stringResource(R.string.meal_not_logged),
+                        text = eaten?.let { formatCount(it.kcal.roundToInt(), locale) }
+                            ?: stringResource(R.string.meal_none),
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (eaten == null) {
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -490,7 +467,20 @@ private fun WeightCard(state: TodayUiState, onSave: (Double) -> Unit) {
             modifier = Modifier.padding(spacing.s16),
             verticalArrangement = Arrangement.spacedBy(spacing.s8),
         ) {
-            Text(text = stringResource(R.string.weight_title), style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(text = stringResource(R.string.weight_title), style = MaterialTheme.typography.titleMedium)
+                state.weekAverageKg?.let {
+                    Text(
+                        text = stringResource(R.string.weight_average_short, String.format(locale, "%.1f", it)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(spacing.s8),
@@ -515,23 +505,13 @@ private fun WeightCard(state: TodayUiState, onSave: (Double) -> Unit) {
                     Text(stringResource(R.string.action_save))
                 }
             }
-            state.weekAverageKg?.let {
-                Text(
-                    text = stringResource(R.string.weight_week_average, String.format(locale, "%.1f", it)),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
             state.weeklyChangeKg?.let {
                 Text(
                     text = stringResource(R.string.weight_weekly_change, String.format(locale, "%+.1f", it)),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Text(
-                text = stringResource(R.string.weight_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

@@ -2,6 +2,12 @@ package hr.rostanic20.gymbro.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FitnessCenter
@@ -89,11 +95,29 @@ fun GymBroApp() {
                 entries = entriesByTab.getValue(navigator.currentTab),
                 modifier = Modifier.padding(innerPadding),
                 onBack = { navigator.goBack() },
+                transitionSpec = { enterFromRight() },
+                popTransitionSpec = { exitToRight() },
+                predictivePopTransitionSpec = { exitToRight() },
             )
             BackHandler(enabled = navigator.isAtTabRootAwayFromHome) { navigator.goBack() }
         }
     }
 }
+
+private const val NAV_ANIMATION_MILLIS = 220
+private const val SLIDE_FRACTION = 4
+
+private fun enterFromRight(): ContentTransform =
+    ContentTransform(
+        slideInHorizontally(tween(NAV_ANIMATION_MILLIS)) { it / SLIDE_FRACTION } + fadeIn(tween(NAV_ANIMATION_MILLIS)),
+        fadeOut(tween(NAV_ANIMATION_MILLIS)),
+    )
+
+private fun exitToRight(): ContentTransform =
+    ContentTransform(
+        fadeIn(tween(NAV_ANIMATION_MILLIS)),
+        slideOutHorizontally(tween(NAV_ANIMATION_MILLIS)) { it / SLIDE_FRACTION } + fadeOut(tween(NAV_ANIMATION_MILLIS)),
+    )
 
 @Composable
 private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator): List<NavEntry<NavKey>> =
