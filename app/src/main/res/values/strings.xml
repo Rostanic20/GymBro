@@ -196,6 +196,9 @@
     <string name="protein_grams">%1$s g protein</string>
     <string name="weight_title">Weight</string>
     <string name="weight_field">Today (kg)</string>
+    <string name="weight_field_past">That morning (kg)</string>
+    <string name="day_previous">Previous day</string>
+    <string name="day_next">Next day</string>
     <string name="weight_week_average">7-day average: %1$s kg</string>
     <string name="weight_weekly_change">Change vs last week: %1$s kg</string>
     <string name="weight_hint">Same conditions every morning. Judge the weekly average, not the day.</string>
@@ -270,6 +273,13 @@
     <string name="photo_none">No photo yet</string>
     <string name="photo_delete">Delete photo</string>
     <string name="weight_trend_caption">Last 12 weeks. Dots are weigh-ins, the line is the 7-day average.</string>
+
+    <string name="history_title">Workout history</string>
+    <string name="history_open">See every workout</string>
+    <string name="history_empty">No finished workouts yet.</string>
+    <string name="history_meta">%1$s · %2$s</string>
+    <string name="history_deload">Deload</string>
+    <string name="history_unknown_day">Workout</string>
 
     <string name="lifts_title">Top sets</string>
     <string name="lifts_empty">Finish a workout to see your top sets here.</string>

@@ -13,11 +13,13 @@ import hr.rostanic20.gymbro.domain.model.FoodDraft
 import hr.rostanic20.gymbro.domain.model.FoodLogEntry
 import hr.rostanic20.gymbro.domain.model.LoggedSet
 import hr.rostanic20.gymbro.domain.model.Meal
+import hr.rostanic20.gymbro.domain.model.MealSettings
 import hr.rostanic20.gymbro.domain.model.Nutrition
 import hr.rostanic20.gymbro.domain.model.PhotoPose
 import hr.rostanic20.gymbro.domain.model.Profile
 import hr.rostanic20.gymbro.domain.model.ProgressPhoto
 import hr.rostanic20.gymbro.domain.model.Recipe
+import hr.rostanic20.gymbro.domain.model.SessionSummary
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
 import hr.rostanic20.gymbro.domain.model.TopSetPoint
@@ -27,18 +29,21 @@ import hr.rostanic20.gymbro.domain.model.WorkoutSession
 import hr.rostanic20.gymbro.domain.nutritionFor
 import hr.rostanic20.gymbro.domain.repository.BodyRepository
 import hr.rostanic20.gymbro.domain.repository.FoodRepository
+import hr.rostanic20.gymbro.domain.repository.MealSettingsRepository
 import hr.rostanic20.gymbro.domain.repository.PhotoRepository
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
 import hr.rostanic20.gymbro.domain.repository.ProgramRepository
 import hr.rostanic20.gymbro.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
+
 import java.time.ZonedDateTime
 
 val defaultProfile = Profile(
@@ -137,6 +142,23 @@ class FakeSessionRepository : SessionRepository {
 
     override fun topSetHistory(exerciseId: Long, limit: Int): Flow<List<TopSetPoint>> =
         historyByExercise.map { it[exerciseId].orEmpty().takeLast(limit) }
+
+    override fun recentSessions(limit: Int): Flow<List<SessionSummary>> =
+        combine(sessions, loggedSets) { list, sets ->
+            list.filterNot { it.isActive }
+                .sortedByDescending { it.startedAtMillis }
+                .take(limit)
+                .map { session ->
+                    SessionSummary(
+                        id = session.id,
+                        dayId = session.dayId,
+                        date = session.date,
+                        isDeload = session.isDeload,
+                        note = session.note,
+                        setCount = sets.count { it.first == session.id },
+                    )
+                }
+        }
 
     fun setHistory(exerciseId: Long, points: List<TopSetPoint>) {
         historyByExercise.update { it + (exerciseId to points) }
@@ -336,8 +358,26 @@ class FakeRestTimer : RestTimer {
 class FakeMealReminderScheduler : MealReminderScheduler {
     val calls = mutableListOf<Boolean>()
 
-    override fun reschedule(enabled: Boolean) {
+    override suspend fun reschedule(enabled: Boolean) {
         calls += enabled
+    }
+}
+
+class FakeMealSettingsRepository(initial: MealSettings = MealSettings()) : MealSettingsRepository {
+    private val state = MutableStateFlow(initial)
+    val current: MealSettings get() = state.value
+    var failWrites = false
+
+    override fun settings(): Flow<MealSettings> = state
+
+    override suspend fun setTime(meal: Meal, time: LocalTime) {
+        failIf(failWrites)
+        state.update { it.copy(times = it.times + (meal to time)) }
+    }
+
+    override suspend fun setEnabled(meal: Meal, enabled: Boolean) {
+        failIf(failWrites)
+        state.update { it.copy(disabled = if (enabled) it.disabled - meal else it.disabled + meal) }
     }
 }
 

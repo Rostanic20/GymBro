@@ -1,6 +1,7 @@
 package hr.rostanic20.gymbro.domain.repository
 
 import hr.rostanic20.gymbro.domain.model.LoggedSet
+import hr.rostanic20.gymbro.domain.model.SessionSummary
 import hr.rostanic20.gymbro.domain.model.SetValues
 import hr.rostanic20.gymbro.domain.model.TopSet
 import hr.rostanic20.gymbro.domain.model.TopSetPoint
@@ -14,6 +15,7 @@ interface SessionRepository {
     fun sessionsOn(date: LocalDate): Flow<List<WorkoutSession>>
     fun sets(sessionId: Long): Flow<List<LoggedSet>>
     fun topSetHistory(exerciseId: Long, limit: Int): Flow<List<TopSetPoint>>
+    fun recentSessions(limit: Int): Flow<List<SessionSummary>>
     suspend fun lastSets(exerciseId: Long, excludedSessionId: Long): List<LoggedSet>
     suspend fun recentTopSets(exerciseId: Long, limit: Int): List<TopSet>
     suspend fun startSession(dayId: Long, date: LocalDate, isDeload: Boolean, nowMillis: Long): Long

@@ -15,6 +15,15 @@ data class WorkoutSession(
     val isActive: Boolean get() = finishedAtMillis == null
 }
 
+data class SessionSummary(
+    val id: Long,
+    val dayId: Long,
+    val date: LocalDate,
+    val isDeload: Boolean,
+    val note: String?,
+    val setCount: Int,
+)
+
 data class LoggedSet(
     val id: Long,
     val exerciseId: Long,

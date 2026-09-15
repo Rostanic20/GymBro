@@ -7,6 +7,7 @@ import hr.rostanic20.gymbro.ui.UserMessage
 import hr.rostanic20.gymbro.util.FakeBodyRepository
 import hr.rostanic20.gymbro.util.FakeDateProvider
 import hr.rostanic20.gymbro.util.FakeFoodRepository
+import hr.rostanic20.gymbro.util.FakeMealSettingsRepository
 import hr.rostanic20.gymbro.util.FakeProfileRepository
 import hr.rostanic20.gymbro.util.FakeProgramRepository
 import hr.rostanic20.gymbro.util.FakeSessionRepository
@@ -36,9 +37,10 @@ class TodayViewModelTest {
     private val sessions = FakeSessionRepository()
     private val foods = FakeFoodRepository()
     private val body = FakeBodyRepository()
+    private val mealSettings = FakeMealSettingsRepository()
     private val dates = FakeDateProvider(monday)
     private val viewModel by lazy {
-        TodayViewModel(profiles, FakeProgramRepository(weekProgram), sessions, foods, body, dates)
+        TodayViewModel(profiles, FakeProgramRepository(weekProgram), sessions, foods, body, mealSettings, dates)
     }
 
     private fun TestScope.collectState() {
@@ -123,6 +125,54 @@ class TodayViewModelTest {
         assertEquals(53.0, state.eaten.proteinG, 0.001)
         assertEquals(650.0, state.eatenByMeal.getValue(Meal.LUNCH).kcal, 0.001)
         assertNull(state.eatenByMeal[Meal.BREAKFAST_SHAKE])
+    }
+
+    @Test
+    fun `stepping back a day shows that day and cannot step past today`() = runTest {
+        profiles.setProgramStart(monday)
+        dates.date = monday.plusDays(2)
+        foods.logEstimate(monday.plusDays(1), Meal.DINNER, "Tuesday", Nutrition(500.0, 30.0, 40.0, 20.0), nowMillis = 1)
+        collectState()
+
+        viewModel.showPreviousDay()
+
+        val yesterday = viewModel.state.value!!
+        assertEquals(monday.plusDays(1), yesterday.date)
+        assertEquals(false, yesterday.isToday)
+        assertEquals(500.0, yesterday.eaten.kcal, 0.001)
+
+        viewModel.showNextDay()
+        viewModel.showNextDay()
+
+        assertEquals(monday.plusDays(2), viewModel.state.value?.date)
+        assertEquals(true, viewModel.state.value?.isToday)
+    }
+
+    @Test
+    fun `a weigh-in on a past day is stored for that day`() = runTest {
+        dates.date = monday.plusDays(1)
+        collectState()
+
+        viewModel.showPreviousDay()
+        viewModel.saveWeight(70.8)
+        advanceUntilIdle()
+
+        assertEquals(70.8, viewModel.state.value?.weightTodayKg!!, 0.001)
+        viewModel.showToday()
+        assertNull(viewModel.state.value?.weightTodayKg)
+    }
+
+    @Test
+    fun `a past day offers its logged session instead of starting a new one`() = runTest {
+        dates.date = monday.plusDays(1)
+        val sessionId = sessions.startSession(dayId = 1, date = monday, isDeload = false, nowMillis = 1_000)
+        sessions.finishSession(sessionId, nowMillis = 2_000)
+        collectState()
+
+        viewModel.showPreviousDay()
+
+        assertEquals(WorkoutStatus.LOGGED, viewModel.state.value?.workoutStatus)
+        assertEquals(sessionId, viewModel.state.value?.loggedSessionId)
     }
 
     @Test

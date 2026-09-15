@@ -36,6 +36,7 @@ import hr.rostanic20.gymbro.navigation.rememberAppNavigator
 import hr.rostanic20.gymbro.ui.body.BodyScreen
 import hr.rostanic20.gymbro.ui.foods.FoodEditScreen
 import hr.rostanic20.gymbro.ui.foods.FoodsScreen
+import hr.rostanic20.gymbro.ui.history.HistoryScreen
 import hr.rostanic20.gymbro.ui.meal.MealScreen
 import hr.rostanic20.gymbro.ui.session.SessionScreen
 import hr.rostanic20.gymbro.ui.settings.SettingsScreen
@@ -104,11 +105,12 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
             entry<AppDestination.Today> {
                 TodayScreen(
                     onOpenWorkout = { navigator.navigate(AppDestination.Workout(it)) },
+                    onOpenSession = { navigator.navigate(AppDestination.Session(it)) },
                     onOpenMeal = { epochDay, slot -> navigator.navigate(AppDestination.Meal(epochDay, slot)) },
                 )
             }
             entry<AppDestination.Train> {
-                TrainScreen()
+                TrainScreen(onOpenHistory = { navigator.navigate(AppDestination.History) })
             }
             entry<AppDestination.Body> {
                 BodyScreen()
@@ -128,6 +130,12 @@ private fun rememberTabEntries(backStack: List<NavKey>, navigator: AppNavigator)
             }
             entry<AppDestination.Meal> { destination ->
                 MealScreen(epochDay = destination.epochDay, slot = destination.slot, onBack = { navigator.goBack() })
+            }
+            entry<AppDestination.History> {
+                HistoryScreen(
+                    onBack = { navigator.goBack() },
+                    onOpenSession = { navigator.navigate(AppDestination.Session(it)) },
+                )
             }
             entry<AppDestination.Foods> {
                 FoodsScreen(

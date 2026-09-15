@@ -66,6 +66,16 @@ DELETE FROM set_entry WHERE session_id = ?;
 selectSetsForSession:
 SELECT * FROM set_entry WHERE session_id = ? ORDER BY id;
 
+selectFinishedSessions:
+SELECT workout_session.id, workout_session.day_id, workout_session.date_epoch_day, workout_session.is_deload,
+       workout_session.note, COUNT(set_entry.id) AS set_count
+FROM workout_session
+LEFT JOIN set_entry ON set_entry.session_id = workout_session.id
+WHERE workout_session.finished_at IS NOT NULL
+GROUP BY workout_session.id
+ORDER BY workout_session.started_at DESC
+LIMIT :limit;
+
 selectLastSessionIdWithExercise:
 SELECT workout_session.id
 FROM workout_session

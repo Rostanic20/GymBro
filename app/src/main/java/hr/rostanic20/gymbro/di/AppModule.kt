@@ -19,6 +19,8 @@ import hr.rostanic20.gymbro.data.health.HealthConnectSource
 import hr.rostanic20.gymbro.data.local.AndroidPhotoStorage
 import hr.rostanic20.gymbro.data.local.BackupSettingsLocalDataSource
 import hr.rostanic20.gymbro.data.local.BackupSettingsLocalDataSourceImpl
+import hr.rostanic20.gymbro.data.local.MealSettingsLocalDataSource
+import hr.rostanic20.gymbro.data.local.MealSettingsLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.BodyLocalDataSource
 import hr.rostanic20.gymbro.data.local.BodyLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.local.FoodLocalDataSource
@@ -33,6 +35,7 @@ import hr.rostanic20.gymbro.data.local.SessionLocalDataSource
 import hr.rostanic20.gymbro.data.local.SessionLocalDataSourceImpl
 import hr.rostanic20.gymbro.data.repository.BackupSettingsRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.BodyRepositoryImpl
+import hr.rostanic20.gymbro.data.repository.MealSettingsRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.FoodRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.PhotoRepositoryImpl
 import hr.rostanic20.gymbro.data.repository.ProfileRepositoryImpl
@@ -41,6 +44,7 @@ import hr.rostanic20.gymbro.data.repository.SessionRepositoryImpl
 import hr.rostanic20.gymbro.db.AppDb
 import hr.rostanic20.gymbro.domain.repository.BackupSettingsRepository
 import hr.rostanic20.gymbro.domain.repository.BodyRepository
+import hr.rostanic20.gymbro.domain.repository.MealSettingsRepository
 import hr.rostanic20.gymbro.domain.repository.FoodRepository
 import hr.rostanic20.gymbro.domain.repository.PhotoRepository
 import hr.rostanic20.gymbro.domain.repository.ProfileRepository
@@ -52,6 +56,7 @@ import hr.rostanic20.gymbro.ui.body.BodyViewModel
 import hr.rostanic20.gymbro.ui.foods.FoodEditViewModel
 import hr.rostanic20.gymbro.ui.settings.BackupViewModel
 import hr.rostanic20.gymbro.ui.foods.FoodsViewModel
+import hr.rostanic20.gymbro.ui.history.HistoryViewModel
 import hr.rostanic20.gymbro.ui.meal.MealViewModel
 import hr.rostanic20.gymbro.ui.session.SessionViewModel
 import hr.rostanic20.gymbro.ui.settings.SettingsViewModel
@@ -80,7 +85,7 @@ val appModule = module {
         )
     }
     single<RestTimer> { AlarmRestTimer(androidApplication()) }
-    single<MealReminderScheduler> { AlarmMealReminderScheduler(androidApplication()) }
+    single<MealReminderScheduler> { AlarmMealReminderScheduler(androidApplication(), get()) }
     single<PhotoStorage> { AndroidPhotoStorage(androidApplication(), get()) }
     single<HealthSource> { HealthConnectSource(androidApplication(), get()) }
     single<BackupStore> { AndroidBackupStore(androidApplication(), get(), get()) }
@@ -96,6 +101,7 @@ val appModule = module {
     singleOf(::BodyLocalDataSourceImpl) bind BodyLocalDataSource::class
     singleOf(::PhotoLocalDataSourceImpl) bind PhotoLocalDataSource::class
     singleOf(::BackupSettingsLocalDataSourceImpl) bind BackupSettingsLocalDataSource::class
+    singleOf(::MealSettingsLocalDataSourceImpl) bind MealSettingsLocalDataSource::class
     singleOf(::ProgramRepositoryImpl) bind ProgramRepository::class
     singleOf(::ProfileRepositoryImpl) bind ProfileRepository::class
     singleOf(::SessionRepositoryImpl) bind SessionRepository::class
@@ -103,6 +109,7 @@ val appModule = module {
     singleOf(::BodyRepositoryImpl) bind BodyRepository::class
     singleOf(::PhotoRepositoryImpl) bind PhotoRepository::class
     singleOf(::BackupSettingsRepositoryImpl) bind BackupSettingsRepository::class
+    singleOf(::MealSettingsRepositoryImpl) bind MealSettingsRepository::class
 
     viewModelOf(::TodayViewModel)
     viewModelOf(::HealthViewModel)
@@ -111,8 +118,9 @@ val appModule = module {
     viewModelOf(::SettingsViewModel)
     viewModelOf(::BackupViewModel)
     viewModelOf(::FoodsViewModel)
+    viewModelOf(::HistoryViewModel)
     viewModel { (dayId: Long) -> WorkoutViewModel(dayId, get(), get(), get(), get(), get()) }
     viewModel { (sessionId: Long) -> SessionViewModel(sessionId, get(), get(), get(), get(), get()) }
-    viewModel { (epochDay: Long, slot: Int) -> MealViewModel(epochDay, slot, get(), get()) }
+    viewModel { (epochDay: Long, slot: Int) -> MealViewModel(epochDay, slot, get(), get(), get()) }
     viewModel { params -> FoodEditViewModel(params.getOrNull(), get()) }
 }

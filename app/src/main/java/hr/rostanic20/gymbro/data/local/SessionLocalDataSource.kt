@@ -6,6 +6,7 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import hr.rostanic20.gymbro.core.DispatcherProvider
 import hr.rostanic20.gymbro.data.SessionEntity
+import hr.rostanic20.gymbro.data.SessionSummaryEntity
 import hr.rostanic20.gymbro.data.SetEntity
 import hr.rostanic20.gymbro.data.TopSetHistoryEntity
 import hr.rostanic20.gymbro.data.TopSetRowEntity
@@ -21,6 +22,7 @@ interface SessionLocalDataSource {
     fun onDate(epochDay: Long): Flow<List<SessionEntity>>
     fun sets(sessionId: Long): Flow<List<SetEntity>>
     fun topSetHistory(exerciseId: Long, limit: Long): Flow<List<TopSetHistoryEntity>>
+    fun finishedSessions(limit: Long): Flow<List<SessionSummaryEntity>>
     suspend fun lastSets(exerciseId: Long, excludedSessionId: Long): List<SetEntity>
     suspend fun firstSets(exerciseId: Long, limit: Long): List<TopSetRowEntity>
     suspend fun insertSession(dayId: Long, epochDay: Long, startedAt: Long, isDeload: Boolean): Long
@@ -63,6 +65,9 @@ class SessionLocalDataSourceImpl(
 
     override fun topSetHistory(exerciseId: Long, limit: Long): Flow<List<TopSetHistoryEntity>> =
         query.selectTopSetHistory(exerciseId, limit).asFlow().map { it.awaitAsList() }
+
+    override fun finishedSessions(limit: Long): Flow<List<SessionSummaryEntity>> =
+        query.selectFinishedSessions(limit).asFlow().map { it.awaitAsList() }
 
     override suspend fun lastSets(exerciseId: Long, excludedSessionId: Long): List<SetEntity> =
         withContext(dispatchers.io) {
