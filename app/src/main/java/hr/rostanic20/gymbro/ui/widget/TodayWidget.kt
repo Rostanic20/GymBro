@@ -32,6 +32,7 @@ import androidx.glance.appwidget.updateAll
 import hr.rostanic20.gymbro.MainActivity
 import hr.rostanic20.gymbro.R
 import hr.rostanic20.gymbro.core.WidgetUpdater
+import hr.rostanic20.gymbro.ui.common.formatCount
 import hr.rostanic20.gymbro.ui.common.labelRes
 import hr.rostanic20.gymbro.ui.theme.GymBroDarkColors
 import hr.rostanic20.gymbro.ui.theme.GymBroLightColors
@@ -64,8 +65,12 @@ class TodayWidget : GlanceAppWidget() {
     private fun WidgetContent(context: Context, data: TodayWidgetData) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             Row(verticalAlignment = Alignment.Bottom, modifier = GlanceModifier.fillMaxWidth()) {
+                val locale = context.resources.configuration.locales[0]
                 Text(
-                    text = context.getString(R.string.widget_kcal_left, data.kcalLeft.coerceAtLeast(0).toString()),
+                    text = context.getString(
+                        R.string.widget_kcal_left,
+                        formatCount(data.kcalLeft.coerceAtLeast(0), locale),
+                    ),
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
@@ -76,8 +81,8 @@ class TodayWidget : GlanceAppWidget() {
                 Text(
                     text = context.getString(
                         R.string.widget_protein,
-                        data.proteinEaten.toString(),
-                        data.proteinTarget.toString(),
+                        formatCount(data.proteinEaten, locale),
+                        formatCount(data.proteinTarget, locale),
                     ),
                     style = TextStyle(fontSize = 14.sp, color = GlanceTheme.colors.onSurfaceVariant),
                 )

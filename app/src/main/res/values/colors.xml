@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="window_background">#FBF8F6</color>
+    <color name="widget_preview_background">#FFEDE5</color>
+    <color name="widget_preview_text">#201A17</color>
+    <color name="widget_preview_track">#D8C2B8</color>
+    <color name="widget_preview_button">#C1501B</color>
+    <color name="widget_preview_on_button">#FFFFFF</color>
 </resources>
