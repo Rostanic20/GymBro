@@ -10,6 +10,7 @@ import hr.rostanic20.gymbro.ui.UserMessage
 import hr.rostanic20.gymbro.util.FakeClock
 import hr.rostanic20.gymbro.util.FakeFoodRepository
 import hr.rostanic20.gymbro.util.FakeMealSettingsRepository
+import hr.rostanic20.gymbro.util.FakeWidgetUpdater
 import hr.rostanic20.gymbro.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -38,9 +39,17 @@ class MealViewModelTest {
     private val shake = Recipe(1, "Shake #1", listOf(RecipeItem(oats, 40.0)))
     private val foods = FakeFoodRepository(foods = listOf(oats, egg), recipes = listOf(dinner, shake))
     private val clock = FakeClock(1_000)
+    private val widgets = FakeWidgetUpdater()
 
     private fun TestScope.open(meal: Meal): MealViewModel {
-        val viewModel = MealViewModel(monday.toEpochDay(), meal.slot, foods, FakeMealSettingsRepository(), clock)
+        val viewModel = MealViewModel(
+            monday.toEpochDay(),
+            meal.slot,
+            foods,
+            FakeMealSettingsRepository(),
+            widgets,
+            clock,
+        )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
         return viewModel
     }

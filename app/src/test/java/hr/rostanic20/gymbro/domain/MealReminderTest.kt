@@ -45,6 +45,24 @@ class MealReminderTest {
     }
 
     @Test
+    fun `the next meal of the day is the first one still ahead`() {
+        assertEquals(Meal.LUNCH, nextMealOfDay(monday.atTime(10, 30)))
+        assertEquals(Meal.DESK_SNACK, nextMealOfDay(monday.atTime(10, 0)))
+    }
+
+    @Test
+    fun `after the last meal there is no next one today`() {
+        assertNull(nextMealOfDay(monday.atTime(21, 0)))
+    }
+
+    @Test
+    fun `a meal turned off is never the next one`() {
+        val settings = MealSettings(disabled = setOf(Meal.LUNCH))
+
+        assertEquals(Meal.PRE_GYM, nextMealOfDay(monday.atTime(10, 30), settings))
+    }
+
+    @Test
     fun `a moved meal time is used for the reminder`() {
         val settings = MealSettings(times = mapOf(Meal.BREAKFAST_SHAKE to LocalTime.of(5, 45)))
 

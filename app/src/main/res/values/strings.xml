@@ -193,6 +193,14 @@
     <string name="canteen_tip_soup">Whey now, 40 g in shake #2, and 4 eggs at dinner.</string>
 
     <string name="food_eaten_kcal">%1$s / %2$s kcal</string>
+    <string name="widget_description">Calories left and the next meal</string>
+    <string name="widget_kcal_left">%1$s kcal left</string>
+    <string name="widget_protein">P %1$s/%2$s</string>
+    <string name="widget_next">Next %1$s · %2$s</string>
+    <string name="widget_next_logged">%1$s %2$s · logged</string>
+    <string name="widget_day_done">Every meal logged</string>
+    <string name="widget_log_planned">Log planned</string>
+
     <string name="meals_title">Meals</string>
     <string name="meal_kcal">%1$s kcal</string>
     <string name="protein_grams">%1$s g protein</string>

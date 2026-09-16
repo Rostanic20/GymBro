@@ -13,6 +13,9 @@ private const val SEARCH_DAYS = 8L
 
 fun Meal.isRemindedOn(date: LocalDate): Boolean = onWeekends || date.dayOfWeek !in HOME_DAYS
 
+fun nextMealOfDay(now: LocalDateTime, settings: MealSettings = MealSettings()): Meal? =
+    settings.activeMeals.firstOrNull { settings.timeFor(it) >= now.toLocalTime() }
+
 fun nextMealReminder(now: LocalDateTime, settings: MealSettings = MealSettings()): MealReminder? =
     (0L until SEARCH_DAYS).asSequence()
         .map { now.toLocalDate().plusDays(it) }
