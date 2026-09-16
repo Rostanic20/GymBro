@@ -41,7 +41,11 @@ class TodayWidgetLoader(
         val log = foodRepository.log(today).first()
         val settings = mealSettingsRepository.settings().first()
         val eaten = log.total()
-        val next = nextMealOfDay(dates.now().toLocalDateTime(), settings)
+        val logged = log.map { it.meal }.toSet()
+        val now = dates.now().toLocalDateTime()
+        // The meal you still have to eat is more useful than the one you just logged.
+        val next = settings.activeMeals.firstOrNull { settings.timeFor(it) >= now.toLocalTime() && it !in logged }
+            ?: nextMealOfDay(now, settings)
         val planned = next?.suggestedRecipeId?.let { id -> foodRepository.recipes().first().firstOrNull { it.id == id } }
         return TodayWidgetData(
             kcalEaten = eaten.kcal.roundToInt(),
@@ -51,7 +55,7 @@ class TodayWidgetLoader(
             nextMeal = next,
             nextMealTime = next?.let(settings::timeFor),
             plannedRecipe = planned,
-            alreadyLogged = next != null && log.any { it.meal == next },
+            alreadyLogged = next != null && next in logged,
         )
     }
 

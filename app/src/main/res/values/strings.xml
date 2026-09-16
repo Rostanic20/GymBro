@@ -200,6 +200,8 @@
     <string name="widget_next_logged">%1$s %2$s · logged</string>
     <string name="widget_day_done">Every meal logged</string>
     <string name="widget_log_planned">Log planned</string>
+    <string name="widget_preview_kcal">1,833 kcal left</string>
+    <string name="widget_preview_next">Next 16:00 · Pre-gym snack</string>
 
     <string name="meals_title">Meals</string>
     <string name="meal_kcal">%1$s kcal</string>
