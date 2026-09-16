@@ -13,6 +13,7 @@ import hr.rostanic20.gymbro.core.PhotoStorage
 import hr.rostanic20.gymbro.core.RestTimer
 import hr.rostanic20.gymbro.core.SystemDateProvider
 import hr.rostanic20.gymbro.core.WallClock
+import hr.rostanic20.gymbro.core.WidgetUpdater
 import hr.rostanic20.gymbro.data.backup.AndroidBackupStore
 import hr.rostanic20.gymbro.data.backup.WorkManagerBackupScheduler
 import hr.rostanic20.gymbro.data.health.HealthConnectSource
@@ -63,6 +64,8 @@ import hr.rostanic20.gymbro.ui.program.EditDayViewModel
 import hr.rostanic20.gymbro.ui.session.SessionViewModel
 import hr.rostanic20.gymbro.ui.settings.SettingsViewModel
 import hr.rostanic20.gymbro.ui.today.HealthViewModel
+import hr.rostanic20.gymbro.ui.widget.GlanceWidgetUpdater
+import hr.rostanic20.gymbro.ui.widget.TodayWidgetLoader
 import hr.rostanic20.gymbro.ui.today.TodayViewModel
 import hr.rostanic20.gymbro.ui.train.TrainViewModel
 import hr.rostanic20.gymbro.ui.workout.WorkoutViewModel
@@ -92,6 +95,8 @@ val appModule = module {
     single<HealthSource> { HealthConnectSource(androidApplication(), get()) }
     single<BackupStore> { AndroidBackupStore(androidApplication(), get(), get()) }
     single<BackupScheduler> { WorkManagerBackupScheduler(androidApplication()) }
+    single<WidgetUpdater> { GlanceWidgetUpdater(androidApplication()) }
+    singleOf(::TodayWidgetLoader)
 
     single { SqlDriverFactory.createAndroidSqlite(androidApplication()) } bind SqlDriver::class
     single { AppDb(get()) }
@@ -125,6 +130,6 @@ val appModule = module {
     viewModel { (dayId: Long) -> WorkoutViewModel(dayId, get(), get(), get(), get(), get()) }
     viewModel { (dayId: Long) -> EditDayViewModel(dayId, get()) }
     viewModel { (sessionId: Long) -> SessionViewModel(sessionId, get(), get(), get(), get(), get()) }
-    viewModel { (epochDay: Long, slot: Int) -> MealViewModel(epochDay, slot, get(), get(), get()) }
+    viewModel { (epochDay: Long, slot: Int) -> MealViewModel(epochDay, slot, get(), get(), get(), get()) }
     viewModel { params -> FoodEditViewModel(params.getOrNull(), get()) }
 }

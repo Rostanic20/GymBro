@@ -95,6 +95,8 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.health.connect.client)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)

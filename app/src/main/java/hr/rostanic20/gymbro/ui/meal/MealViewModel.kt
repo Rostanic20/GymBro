@@ -3,6 +3,7 @@ package hr.rostanic20.gymbro.ui.meal
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hr.rostanic20.gymbro.core.WallClock
+import hr.rostanic20.gymbro.core.WidgetUpdater
 import hr.rostanic20.gymbro.domain.model.CanteenPlate
 import hr.rostanic20.gymbro.domain.model.Food
 import hr.rostanic20.gymbro.domain.model.FoodLogEntry
@@ -36,6 +37,7 @@ class MealViewModel(
     slot: Int,
     private val foodRepository: FoodRepository,
     mealSettingsRepository: MealSettingsRepository,
+    private val widgets: WidgetUpdater,
     private val clock: WallClock,
 ) : ViewModel() {
 
@@ -65,22 +67,37 @@ class MealViewModel(
         }.stateInWhileSubscribed(viewModelScope, null)
 
     fun logRecipe(recipe: Recipe) {
-        launchReporting(_messages) { foodRepository.logRecipe(date, meal, recipe, clock.nowMillis()) }
+        launchReporting(_messages) {
+            foodRepository.logRecipe(date, meal, recipe, clock.nowMillis())
+            widgets.refresh()
+        }
     }
 
     fun logFood(food: Food, grams: Double) {
-        launchReporting(_messages) { foodRepository.logFood(date, meal, food, grams, clock.nowMillis()) }
+        launchReporting(_messages) {
+            foodRepository.logFood(date, meal, food, grams, clock.nowMillis())
+            widgets.refresh()
+        }
     }
 
     fun logCanteen(plate: CanteenPlate, name: String) {
-        launchReporting(_messages) { foodRepository.logEstimate(date, meal, name, plate.nutrition, clock.nowMillis()) }
+        launchReporting(_messages) {
+            foodRepository.logEstimate(date, meal, name, plate.nutrition, clock.nowMillis())
+            widgets.refresh()
+        }
     }
 
     fun repeatYesterday() {
-        launchReporting(_messages) { foodRepository.repeatMeal(date.minusDays(1), date, meal, clock.nowMillis()) }
+        launchReporting(_messages) {
+            foodRepository.repeatMeal(date.minusDays(1), date, meal, clock.nowMillis())
+            widgets.refresh()
+        }
     }
 
     fun deleteEntry(entryId: Long) {
-        launchReporting(_messages) { foodRepository.deleteEntry(entryId) }
+        launchReporting(_messages) {
+            foodRepository.deleteEntry(entryId)
+            widgets.refresh()
+        }
     }
 }

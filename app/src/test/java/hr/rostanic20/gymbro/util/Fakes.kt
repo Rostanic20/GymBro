@@ -6,6 +6,7 @@ import hr.rostanic20.gymbro.core.HealthSummary
 import hr.rostanic20.gymbro.core.MealReminderScheduler
 import hr.rostanic20.gymbro.core.RestTimer
 import hr.rostanic20.gymbro.core.WallClock
+import hr.rostanic20.gymbro.core.WidgetUpdater
 import hr.rostanic20.gymbro.domain.CALORIE_ADJUSTMENT_RANGE
 import hr.rostanic20.gymbro.domain.model.BodyWeight
 import hr.rostanic20.gymbro.domain.model.Exercise
@@ -436,6 +437,14 @@ class FakeMealSettingsRepository(initial: MealSettings = MealSettings()) : MealS
     override suspend fun setEnabled(meal: Meal, enabled: Boolean) {
         failIf(failWrites)
         state.update { it.copy(disabled = if (enabled) it.disabled - meal else it.disabled + meal) }
+    }
+}
+
+class FakeWidgetUpdater : WidgetUpdater {
+    var refreshes = 0
+
+    override suspend fun refresh() {
+        refreshes++
     }
 }
 
